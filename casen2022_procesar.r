@@ -1,10 +1,9 @@
 library(dplyr)
 library(purrr)
-
+library(stringr)
 
 #preprocesar ----
 message("cargando casen 2022...")
-ruta_casen2022 = "datos/Base de datos Casen 2022 STATA.dta" 
 
   
 #obtener codigos unicos territoriales desde libro de codigos
@@ -22,7 +21,7 @@ casen2022comunas <- readstata13::read.dta13("datos/Base de datos provincia y com
   left_join(cut_comunas, join_by(comuna))
 
 #cargar base
-casen2022 <- readstata13::read.dta13(ruta_casen2022, generate.factors = T) |> 
+casen2022 <- readstata13::read.dta13("datos/Base de datos Casen 2022 STATA.dta" , generate.factors = T) |> 
   as_tibble()
 
 #unir base con comunas
@@ -38,100 +37,104 @@ casen2022_2 <- casen2022 |>
 # file.remove("datos/Base de datos Casen 2022 STATA.dta")
 
 
-
-# seleccionar variables ----
-#seleccionar variables
-variables_casen <- c(
-         "comuna",
-         "cut_comuna",
-         "region",
-         "area",
-         "expc",                    #factor de expansión comunal
-         "sexo",                    #género
-         "esc",                     #años de escolaridad
-         "edad",                    #edad
-         
-         #económicas y de salario
-         "ytotcorh",                #Ingreso total del hogar corregido
-         "ytotcor",                 #Ingreso total corregido
-         "yoprcor",                 #Ingreso ocupación principal
-         "ypc",                     #Ingreso total per cápita del hogar corregido
-         "ytrabajocor",             #ingreso del trabajo
-         "ytrabajocorh",            #ingreso del trabajo del hogar
-         "ypchautcor",              #ingreso autónomo per cápita 
-         "y26_2c",                  #jubilación o pensión
-         "y0101",                   #Asalariados principal - Sueldos y salarios monetario
-         "yosa",                    #Ingresos de la ocupación secundaria - Asalariados
-         "ytot",                    #Ingreso total
-         "dau",                     #Decil autónomo nacional
-         "qaut",                    #Quintil autónomo nacional
-         "dautr",                   #Decil autónomo regional
-         "qautr",                   #Quintil autónomo regional
-         
-         #social
-         "pobreza",                 #pobreza
-         "pobreza_multi_5d",        #pobreza multidimensional
-         "r1a",                     #nacionalidad
-         "r3",                      #pertenencia a pueblos originarios
-         
-         #laboral
-         "activ",                   #actividad
-         
-         #vivienda
-         "numper",                  #numero de personas en el hogar
-         "s4",                      #hijos vivos
-         "pco1",                    #jefe de hogar
-         "v12",                     #metros cuadrados de la casa
-         "indmat",                  #índice de materialidad de la vivienda
-         
-         
-         "p2",                      #Indique estado de edificios y casas del sector
-         "p3",                      #Presencia de basura en el sector
-         "p4",                      #Vandalismo, grafiti o daño deliberado a la propiedad en el sector
-         "p9",                      #p9. Incluyéndose a Ud., ¿cuántas personas viven habitualmente en la vivienda?
-         
-         
-         "contrato",                #Tiene contrato de trabajo
-         "v13",                     #v13. Su hogar, ¿bajo qué situación ocupa la vivienda?
-         "men18c",                  #Presencia de menores de 18 años en el hogar (excluye SDPA)
-         "may60c",                  #Presencia de mayores de 60 años en el hogar (excluye SDPA)
-         "educ",                    #Nivel de escolaridad
-         "s13",                     #s13. ¿A qué sistema previsional de salud pertenece?
-         "v1",                      #v1. ¿Cuál es el tipo de vivienda que ocupa la persona entrevistada?
-         "qaut",                    #Quintil autónomo nacional
-         "dautr",                   #Decil autónomo regional
-         "qautr"                    #Quintil autónomo regional
-          )
-
-casen2022_3 <- casen2022_2 |> 
-  select(any_of(variables_casen))
+source("variables.R")
 
 
-# aplicar factor de expansión ----
-casen2022_4 <- casen2022_3 |> 
-  tidyr::uncount(weights = expc)
 
-casen_numericas_comunas <- casen2022_4 |> 
+# filtrar variables y aplicar factor de expansión ----
+casen2022_comunas <- casen2022_2 |> 
+  select(any_of(variables_casen)) |> 
+  tidyr::uncount(weights = expc) |> 
+  mutate(nivel = "comuna")
+
+
+# modificar variables ----
+casen2022_comunas_2 <- casen2022_comunas |> 
+  mutate(dautr = as.integer(dautr)) |> 
+  mutate(qautr = as.integer(qautr)) |> 
+  mutate(v12mt = readr::parse_integer(as.character(v12mt)))
+
+
+# calcular variables numéricas ----
+casen2022_numericos_hogar <- casen2022_comunas_2 |> 
   filter(pco1 == "1. Jefatura de Hogar") |> 
   group_by(comuna, cut_comuna, region) |> 
-  summarize(across(where(is.numeric), ~mean(.x, na.rm = TRUE)), .groups = "drop")
-
-casen_numericas_regiones <- casen2022_4 |> 
-  filter(pco1 == "1. Jefatura de Hogar") |> 
-  group_by(region) |> 
-  summarize(across(where(is.numeric), ~mean(.x, na.rm = TRUE)), .groups = "drop")
+  # summarize(across(where(is.numeric), ~mean(.x, na.rm = TRUE)),
+  summarize(across(any_of(variables_numericas_hogar |> unname()),
+                   ~mean(.x, na.rm = TRUE)), 
+            .groups = "drop")
 
 
-# crear variables ----
-casen2022_5 <- casen2022_4 %>%
-  group_by(comuna) %>%
-  summarize(#hacinamiento =  sum(hacinamiento == "Hacinamiento crítico (5 y más)" | hacinamiento == "Hacinamiento medio alto (3,5 a 4,9)" | hacinamiento == "Hacinamiento medio bajo (2,5 a 3,49)", na.rm = TRUE),
+casen2022_numericos_personas <- casen2022_comunas_2 |> 
+  group_by(comuna, cut_comuna, region) |> 
+  # summarize(across(where(is.numeric), ~mean(.x, na.rm = TRUE)), 
+  summarize(across(any_of(variables_numericas_personas |> unname()),
+                   ~mean(.x, na.rm = TRUE)), 
+            .groups = "drop")
+
+
+
+# calcular variables de conteo ----
+jefatura_femenina <- casen2022_comunas |> 
+  group_by(comuna, cut_comuna, region, sexo) |> 
+  count(pco1) |> 
+  ungroup() |> 
+  filter(pco1 == "1. Jefatura de Hogar" & sexo == "2. Mujer") |> 
+  select(comuna, cut_comuna, region, hogar_jefatura_femenina = n)
+
+
+#variables por persona
+casen2022_comunas_personas <- casen2022_comunas_2 %>%
+  group_by(comuna, cut_comuna, region) %>%
+  summarize(poblacion = n(),
             pobreza = sum(pobreza == "Pobreza extrema" | pobreza == "Pobreza no extrema", na.rm = TRUE),
             originario = sum(r3 != "11. No pertenece a ninguno de estos pueblos indígenas", na.rm = TRUE),
             extranjero = sum(r1a == "3. Otro país (extranjeros)", na.rm=TRUE),
             inactivos = sum(activ == "Inactivos", na.rm=TRUE),
             desocupados = sum(activ == "Desocupados", na.rm=TRUE),
-            pobreza_multi = sum(pobreza_multi_5d == "Pobreza", na.rm=TRUE)
-            )
+            pobreza_multi = sum(pobreza_multi_5d == "Pobreza", na.rm=TRUE),
+            fonasa = sum(str_detect(s13, "FONASA"), na.rm=TRUE)
+  ) |> 
+  ungroup()
 
-readr::write_csv2(casen_numericas_comunas, "casen_comunas.csv")
+#variables por hogar
+casen2022_comunas_hogares <- casen2022_comunas_2 %>%
+  filter(pco1 == "1. Jefatura de Hogar") |> 
+  group_by(comuna, cut_comuna, region) %>%
+  summarize(hogares = n(),
+            hacinamiento =  sum(p9 >= 4, na.rm=TRUE),
+            men18c = sum(men18c == "Sí", na.rm=TRUE),
+            may60c = sum(may60c == "Sí", na.rm=TRUE),
+            vivienda_propia = sum(v13 == "1. Propia", na.rm=TRUE),
+            vivienda_pequeña = sum(v12 == "1. Menos de 30 m2", na.rm=TRUE)
+  ) |> 
+  ungroup()
+
+
+#agregar variables hechas por separado
+casen2022_comunas_4 <- casen2022_comunas_personas |> 
+  left_join(casen2022_numericos_hogar) |> 
+  left_join(casen2022_numericos_personas) |> 
+  left_join(casen2022_comunas_hogares, join_by(comuna, cut_comuna, region)) |> 
+  left_join(jefatura_femenina)
+
+
+# porcentajes ----
+casen2022_comunas_5 <- casen2022_comunas_4 |> 
+  #porcentaje en relación a población
+  mutate(across(c(pobreza, originario, extranjero, inactivos, desocupados, pobreza_multi, fonasa),
+                ~.x/poblacion, .names = "{.col}_p")) |> 
+  #porcentaje en relación a viviendas
+  mutate(across(c(men18c, may60c, vivienda_propia, vivienda_pequeña, hogar_jefatura_femenina, hacinamiento),
+                ~.x/hogares, .names = "{.col}_p"))
+
+# casen2022_comunas_5 |> View()
+# casen2022_comunas_5 |> names() |> cat(sep = "\n")
+
+# casen2022_comunas |> 
+#   count(sexo)
+# casen2022_comunas |> 
+#   count(v12mt)
+
+
+readr::write_csv2(casen2022_comunas_5, "casen_comunas.csv")

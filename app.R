@@ -1,7 +1,13 @@
 library(shiny)
+library(dplyr)
 library(ggplot2)
 library(shinyWidgets)
 options(scipen=999)
+
+
+# diccionario de variables ----
+source("variables.R")
+
 
 ui <- fluidPage(
   
@@ -9,72 +15,44 @@ ui <- fluidPage(
   fluidRow(
     #eje x
     column(12,
-           column(8,
                   selectizeInput("selector_x",
                                  label = "Variable para el eje horizontal",
                                  width = "100%",
-                                 choices = NULL
-                                 #choices = c("primera variable" = "1",
-                                 #               "segunda variable" = "2")
+                                 choices = variables
                   ),
-           )
-           # column(4,
-           #        selectizeInput("tipo_elegido_x",
-           #                       label = "Medida del dato del eje horizontal",
-           #                       width = "100%",
-           #                       choices = c("Promedios" = "promedio",
-           #                                   "Medianas" = "mediana")
-           #        )
-           # )
-           
+                  actionButton("azar_x", "Elegir al azar")
     ),
     #eje y
     column(12,
-           column(8,
                   selectizeInput("selector_y",
                                  label = "Variable para el eje vertical",
                                  width = "100%",
-                                 choices = NULL
-                                 #choices = c("primera variable" = "1",
-                                 #               "segunda variable" = "2")
+                                 choices = variables
                   ),
-           )
-           # column(4,
-           #        selectizeInput("tipo_elegido_y",
-           #                       label = "Medida del dato del eje horizontal",
-           #                       width = "100%",
-           #                       choices = c("Promedios" = "promedio",
-           #                                   "Medianas" = "mediana")
-           #        )
-           # )
+                  actionButton("azar_y", "Elegir al azar")
     ),
     
     #tamaño
     column(12,
-           column(8,
                   selectizeInput("selector_size",
                                  label = "Variable para el tamaño",
                                  width = "100%",
-                                 choices = NULL
-                                 #choices = c("primera variable" = "1",
-                                 #               "segunda variable" = "2")
+                                 choices = variables,
+                                 selected = "poblacion"
                   ),
-           )
-           # column(4,
-           #        
-           #        selectizeInput("tipo_elegido_size",
-           #                       label = "Medida del tamaño",
-           #                       width = "100%",
-           #                       choices = c("Promedios" = "promedio",
-           #                                   "Medianas" = "mediana")
-           #        )
-           # )
-           
-    ),
+                  actionButton("azar_size", "Elegir al azar")
+    )
+  ),
+    
+  fluidRow(
+    column(12,
+           actionButton("azar", "Elegir todas al azar")
+    )
+  ),
     
     #comunas
+  fluidRow(
     column(12,
-           column(12,
                   pickerInput("selector_comunas",
                               label = "Comunas que desea graficar",
                               width = "100%",
@@ -83,7 +61,6 @@ ui <- fluidPage(
                   )
            )
            
-    )
   ),
   
   
@@ -112,24 +89,49 @@ server <- function(input, output, session) {
                     selected = c("La Florida", "Puente Alto", "La Pintana", "Cerrillos", "Ñuñoa", "Vitacura", "Providencia", "Lo Barnechea")
   )
   
-  updateSelectizeInput(session,
-                       inputId = "selector_y",
-                       #choices = variables,
-                       choices = variables_numericas,
-                       selected = sample(variables_numericas, 1)
-  )
+  observeEvent(input$azar,
+               {
+                 updateSelectizeInput(session, inputId = "selector_y",
+                                      selected = sample(variables_numericas, 1))
+                 updateSelectizeInput(session, inputId = "selector_x",
+                                      selected = sample(variables_numericas, 1))
+                 updateSelectizeInput(session, inputId = "selector_size",
+                                      selected = sample(variables_numericas, 1))
+               })
   
-  updateSelectizeInput(session,
-                       inputId = "selector_x",
-                       choices = variables_numericas,
-                       selected = sample(variables_numericas, 1)
-  )
+  observeEvent(input$azar_y, {
+                 updateSelectizeInput(session, inputId = "selector_y",
+                                      selected = sample(variables_numericas, 1))
+               })
   
-  updateSelectizeInput(session,
-                       inputId = "selector_size",
-                       choices = variables_numericas,
-                       selected = sample(variables_numericas, 1)
-  )
+  observeEvent(input$azar_x, {
+                 updateSelectizeInput(session, inputId = "selector_x",
+                                      selected = sample(variables_numericas, 1))
+               })
+  
+  observeEvent(input$azar_size, {
+    updateSelectizeInput(session, inputId = "selector_size",
+                         selected = sample(variables_numericas, 1))
+  })
+  
+  # updateSelectizeInput(session,
+  #                      inputId = "selector_y",
+  #                      #choices = variables,
+  #                      choices = variables_numericas,
+  #                      selected = sample(variables_numericas, 1)
+  # )
+  # 
+  # updateSelectizeInput(session,
+  #                      inputId = "selector_x",
+  #                      choices = variables_numericas,
+  #                      selected = sample(variables_numericas, 1)
+  # )
+  # 
+  # updateSelectizeInput(session,
+  #                      inputId = "selector_size",
+  #                      choices = variables_numericas,
+  #                      selected = sample(variables_numericas, 1)
+  # )
   
   
   
