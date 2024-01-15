@@ -1,0 +1,12 @@
+name: casen_relacionador
+title: casen_relacionador
+username: bastianoleah
+account: bastianoleah
+server: shinyapps.io
+hostUrl: https://api.shinyapps.io/v1
+appId: 10926798
+bundleId: 8144169
+url: https://bastianoleah.shinyapps.io/casen_relacionador/
+version: 1
+asMultiple: FALSE
+asStatic: FALSE
