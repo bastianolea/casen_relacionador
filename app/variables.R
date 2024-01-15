@@ -78,8 +78,8 @@ variables_numericas_personas <- c(
   "Años de escolaridad promedio" = "esc",
   "Edad promedio" = "edad",
   "Ingreso del trabajo" = "ytrabajocor",
-  "Jubilación o pensión de vejez (promedio)" = "y28_2c",
-  "Número de hijos vivos" = "s4",
+  # "Jubilación o pensión de vejez (promedio)" = "y28_2c",
+  # "Número de hijos vivos" = "s4",
   "Decil autónomo regional" = "dautr",
   "Quintil autónomo regional" = "qautr"
 )

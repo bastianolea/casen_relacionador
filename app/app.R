@@ -3,9 +3,24 @@ library(dplyr)
 library(ggplot2)
 library(shinyWidgets)
 library(stringr)
+library(fresh)
+library(shinycssloaders)
+library(glue)
 
 options(scipen=999)
 
+color_fondo = "#45171d"
+color_secundario = "#ff847c"
+color_detalle = "#ff847c"
+color_texto = "#fecea8"
+color_destacado = "#e84a5f"
+
+color_fondo = "#3c1b1f"
+color_secundario = "#db8d6c"
+color_detalle = "#62393e"
+color_texto = "#fecea8"
+color_destacado = "#b21e4b"
+color_enlaces = "#cc3865"
 
 # diccionario de variables
 source("variables.R")
@@ -24,19 +39,155 @@ nombre_variable <- function(texto) {
   unlist(variables)[unlist(variables) == texto] |> names() |> str_remove(".*\\.")
 }
 
+estilo_cuadros <- glue("margin: -6px; margin-top: 10px; margin-bottom: 10px;
+                           padding: 20px;
+                           padding-top: 0;
+                           border-radius: 8px;
+           border: 3px solid {color_detalle} ;")
+
 #—----
-#interfaz ----
+# ui ----
 ui <- fluidPage(
   title = "Relacionador Casen", 
   lang = "es",
+  
+  use_googlefont("Urbanist"), #cargar fuente o tipo de letra
+  use_googlefont("DM Serif Display"),
+  
+  use_theme(create_theme(
+    theme = "default",
+    bs_vars_input(bg = color_fondo),
+    bs_vars_global(body_bg = color_fondo, 
+                   text_color = color_texto, 
+                   link_color = color_destacado),
+    bs_vars_font(size_base = "19px", #aumentar globalmente tamaño de letra  
+                 family_sans_serif = "Urbanist" #cargar fuente o tipo de letra
+    ), 
+    bs_vars_modal(content_bg = color_fondo, content_border_color = color_detalle, 
+                  backdrop_bg = color_fondo, backdrop_opacity = "60%"),
+    bs_vars_button(
+      default_color = color_fondo,
+      default_bg = color_destacado,
+      default_border = color_fondo, 
+      border_radius_base = "6px"
+    )
+  )),
+  
+  # css ----
+  tags$style(paste0(
+    "h1 {
+    font-size: 250%;
+    font-weight: bold;
+    color: ", color_destacado, ";
+    }")),
+  
+  tags$style(paste0("
+    h1, h2, h3 {
+    font-weight: bold;
+    font-family: DM Serif Display;
+    color: ", color_destacado, ";
+    }")),
+  
+  #labels de inputs
+  tags$style(paste0("
+    h4 {
+    font-style: italic;
+    font-size: 110%;
+    margin-bottom: 6px;
+    font-family: DM Serif Display;
+    color: ", color_secundario, ";
+    }")),
+  
+  #enlaces
+  tags$style(paste0("
+    a {
+    text-decoration: underline;
+    color: ", color_enlaces, ";
+    }")),
+  
+  #texto de pickers
+  tags$style(paste0("
+                    .btn.dropdown-toggle {
+                   font-size: 85%;
+                   }")),
+  
+  # >a, .dropdown-menu>.active>a:hover, .dropdown-menu>.active>a:focus {
+  tags$style(paste0("
+         .dropdown-menu,  .divider {
+          color: black !important;
+         background: ", color_destacado, " !important;
+         }
+  
+         .dropdown-header {
+         color: black !important;
+         font-family: DM Serif Display;
+         font-weight: bold;
+         font-size: 110%;
+         }
+         .text {
+         color: black !important;
+         }
+         .form-control {
+         color: ", color_texto, " !important;
+         box-shadow: none;
+         }
+         
+         .no-results {
+         color: black !important;
+         background: ", color_destacado, " !important;
+         }
+.selected {
+background-color: ", color_secundario, " !important;
+color: ", color_fondo, " !important;
+}")),
+  
+  #botones, botones hover
+  tags$style(paste0("
+    .action-button {
+    opacity: 0.6; font-size: 80%; padding: 4px; padding-left: 8px; padding-right: 8px; color: black; 
+    border: 3px solid", color_enlaces, ";
+    }
+    .action-button:hover, .action-button:active, .action-button:focus {
+    opacity: 1;
+    color: black; 
+    border: 3px solid", color_destacado, ";
+    }")),
+  
+  #separador
+  tags$style(paste0("
+                    hr {
+  border-top: 3px solid ", color_detalle, ";
+                    }")),
+  
+  # tags$style(paste0("
+  # .selectize-input, .selectize-input.full {
+  # background: ", color_detalle, ";
+  # color: ", color_fondo, ";
+  # font-size: 80%;
+  # padding: 12px;
+  # border: 0;
+  # }
+  # 
+  # .selectize-control.single .selectize-input:after {
+  # border-color: ", color_fondo, " transparent transparent transparent;
+  # }")),
+  # 
+  
+  
+  # .selectize-dropdown, .shiny-input-select, .form-control, .selectize-dropdown-content {
+  # background: ", color_detalle, ";
+  # color: ", color_fondo, ";
+  # }")),
+  
+  
   
   # header ----
   fluidRow(  
     column(12,
            h1("Relacionador de datos Casen 2022"),
            p("Este visualizador le permite analizar la relación entre múltiples datos socioeconómicos de las comunas del país, en base a los datos de la",
-             tags$a("Encuesta de caracterización socioeconómica nacional (Casen) 2022", target = "_blank", href = "https://observatorio.ministeriodesarrollosocial.gob.cl/encuesta-casen-2022"),
-             "El gráfico expresa cómo se posicionan las comunas entre dos ejes que pueden representar ingresos, condiciones de vida, o situaciones de vulnerabilidad,
+             tags$a("Encuesta de caracterización socioeconómica nacional (Casen) 2022", target = "_blank", href = "https://observatorio.ministeriodesarrollosocial.gob.cl/encuesta-casen-2022")),
+           p("El gráfico expresa cómo se posicionan las comunas entre dos ejes que pueden representar ingresos, condiciones de vida, o situaciones de vulnerabilidad,
              expresando así la relación entre las desigualdades y condiciones de vida del país."),
            
     )
@@ -45,79 +196,99 @@ ui <- fluidPage(
   #selectores ----
   fluidRow(
     column(12,
+           hr(),
            h3("Seleccionar variables"),
            p("Seleccione variables socioeconómicas de su interés para relacionarlas unas con otras, o bien, elija variables al azar usando los botones para descubrir nuevas relaciones.")
-    ),
-    #eje x
-    column(4, style = "margin-top: 24px;",
-           selectizeInput("selector_x",
-                          label = "Variable para el eje horizontal (X)",
-                          width = "100%",
-                          choices = variables,
-                          options = list( `live-search` = TRUE)
+    )
+  ),
+  fluidRow(
+    column(12,
+           #eje x
+           column(4, 
+                  div(style = estilo_cuadros,
+                      pickerInput("selector_x",
+                                  label = h4("Variable para el eje horizontal"),
+                                  width = "100%",
+                                  choices = variables, multiple = FALSE,
+                                  options = list( `live-search` = TRUE)
+                      ),
+                      actionButton("azar_x", "Elegir eje X al azar")
+                  )
            ),
-           actionButton("azar_x", "Elegir eje X al azar")
-    ),
-    #eje y
-    column(4, style = "margin-top: 24px;",
-           selectizeInput("selector_y",
-                          label = "Variable para el eje vertical (Y)",
-                          width = "100%",
-                          choices = variables,
-                          selected = "ytotcorh",
-                          options = list( `live-search` = TRUE)
+           #eje y
+           column(4, 
+                  div(style = estilo_cuadros,
+                      pickerInput("selector_y",
+                                  label = h4("Variable para el eje vertical"),
+                                  width = "100%",
+                                  choices = variables, multiple = FALSE,
+                                  selected = "ytotcorh",
+                                  options = list( `live-search` = TRUE)
+                      ),
+                      actionButton("azar_y", "Elegir eje Y al azar")
+                  )
            ),
-           actionButton("azar_y", "Elegir eje Y al azar")
-    ),
-    
-    #tamaño
-    column(4, style = "margin-top: 24px;",
-           selectizeInput("selector_size",
-                          label = "Variable para el tamaño",
-                          width = "100%",
-                          choices = variables,
-                          selected = "poblacion",
-                          options = list( `live-search` = TRUE)
-           ),
-           actionButton("azar_size", "Elegir tamaño al azar")
+           
+           #tamaño
+           column(4, div(
+             style = estilo_cuadros,
+             pickerInput("selector_size",
+                         label = h4("Variable para el tamaño"),
+                         width = "100%",
+                         choices = variables, multiple = FALSE,
+                         selected = "poblacion",
+                         options = list( `live-search` = TRUE)
+             ),
+             actionButton("azar_size", "Elegir tamaño al azar")
+           )
+           )
     )
   ),
   
   fluidRow(
     column(12, align = "center", 
-           style = "margin-top: 24px; margin-bottom: 24px;",
-           actionButton("azar", "Elegir todas las variables al azar")
+           style = "margin-top: 14px; margin-bottom: 24px;",
+           actionButton("azar", "Elegir todas las variables al azar", style = "padding-left: 24px; padding-right: 24px;")
     )
   ),
   
-  #comunas
+  # territorios ----
   fluidRow(
     column(12,
+           hr(),
            h3("Seleccionar territorios"),
            p("Elija una o más regiones para posteriormente elegir una o varias comunas que serán incluidas en el gráfico.")
-    ),
-    column(6,
-           pickerInput("selector_regiones",
-                       label = "Regiones",
-                       width = "100%",
-                       multiple = TRUE,
-                       selected = "Región Metropolitana de Santiago", 
-                       choices = NULL,
-                       options = list( `live-search` = TRUE)
-           )
-           # em("Seleccione una o más regiones para filtrar el selector de comunas a continuación")
-    ),
-    column(6,     
-           pickerInput("selector_comunas",
-                       label = "Comunas que desea graficar",
-                       width = "100%",
-                       multiple = TRUE,
-                       choices = NULL,
-                       selected = c("La Florida", "Puente Alto", "La Pintana", "Ñuñoa", "Vitacura", "Providencia", "Lo Barnechea"),
-                       options = list( `live-search` = TRUE)
+    )
+  ),
+  fluidRow(
+    column(12,
+           column(6, 
+                  div(style = paste(estilo_cuadros, "padding-bottom: 55px;"),
+                  pickerInput("selector_regiones",
+                              label = h4("Regiones"),
+                              width = "100%",
+                              multiple = TRUE,
+                              selected = "Región Metropolitana de Santiago", 
+                              choices = NULL,
+                              options = list( `live-search` = TRUE)
+                  )
+                  # em("Seleccione una o más regiones para filtrar el selector de comunas a continuación")
+                  )
            ),
-           
-           actionButton("azar_comunas", "Elegir comunas al azar")
+           column(6,  
+                  div(style = estilo_cuadros,   
+                  pickerInput("selector_comunas",
+                              label = h4("Comunas que desea graficar"),
+                              width = "100%",
+                              multiple = TRUE,
+                              choices = NULL,
+                              selected = c("La Florida", "Puente Alto", "La Pintana", "Ñuñoa", "Vitacura", "Providencia", "Lo Barnechea"),
+                              options = list( `live-search` = TRUE)
+                  ),
+                  
+                  actionButton("azar_comunas", "Elegir comunas al azar")
+           )
+           )
     )
     
   ),
@@ -126,20 +297,24 @@ ui <- fluidPage(
   #grafico ----
   fluidRow(
     column(12,
+           hr(),
            h3("Visualizar")
     ),
     column(12, align = "center", style = "padding: 24px;",
            plotOutput("grafico", width = 600, height = 500)
     )
   ),
+  
+  # firma ----
   fluidRow(
     column(12,
            hr(),
            p("Diseñado y programado por",
-             tags$a("Bastián Olea.", target = "_blank", href = "https://bastian.olea.biz"),
+             tags$a("Bastián Olea Herrera.", target = "_blank", href = "https://bastian.olea.biz")),
+           p(
              "Código de fuente de esta app y del procesamiento de los datos",
              tags$a("disponible en GitHub.", target = "_blank", href = "https://github.com/bastianolea/casen_relacionador")
-             )
+           )
     )
   )
   
@@ -279,16 +454,22 @@ server <- function(input, output, session) {
       ### tema ----
     theme_light(base_size = 18) +
       theme(legend.position = "right") +
-      theme(axis.line = element_line(linewidth = 1, color = "gray40", lineend = "round"),
+      theme(axis.line = element_line(linewidth = 2, color = color_detalle, lineend = "round"),
             axis.ticks = element_blank(),
-            panel.grid.major = element_line(linewidth = 0.5, color="gray90"),
+            panel.grid.major = element_line(linewidth = 0.5, color = color_detalle),
             panel.grid.minor = element_blank(),
             panel.border = element_blank(),
-            axis.text = element_text(color= "gray60", size=13),
-            legend.text = element_text(color= "gray60", size = 13),
-            legend.title = element_text(color= "gray60", face = "bold", size = 14),
-            axis.title = element_text(color= "gray60", face = "bold", size = 14)) +
-      guides(size = guide_legend(override.aes = list(color = "gray60")),
+            axis.text = element_text(color = color_texto, size = 13),
+            legend.text = element_text(color = color_texto, size = 13),
+            legend.title = element_text(color = color_destacado, face = "bold", size = 17),
+            axis.title = element_text(color = color_destacado, face = "bold", size = 17)
+            ) +
+      #fondo
+      theme(panel.background = element_rect(fill = color_fondo, linewidth = 0),
+            plot.background = element_rect(fill = color_fondo, linewidth = 0),
+            legend.background = element_rect(fill = color_fondo, linewidth = 0),
+            legend.key = element_rect(fill = color_fondo)) +
+      guides(size = guide_legend(override.aes = list(color = color_detalle)),
              col = guide_legend(override.aes = list(size = 6))) +
       # #etiquetas
       labs(y = nombre_variable(input$selector_y),
