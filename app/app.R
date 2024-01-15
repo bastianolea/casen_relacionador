@@ -102,7 +102,7 @@ ui <- fluidPage(
   tags$style(paste0("
     a {
     text-decoration: underline;
-    color: ", color_enlaces, ";
+    color: ", color_destacado, ";
     }")),
   
   #texto de pickers
@@ -140,9 +140,9 @@ ui <- fluidPage(
 background-color: ", color_secundario, " !important;
 color: ", color_fondo, " !important;
 }")),
-  
-  #botones, botones hover
-  tags$style(paste0("
+
+#botones, botones hover
+tags$style(paste0("
     .action-button {
     opacity: 0.6; font-size: 80%; padding: 4px; padding-left: 8px; padding-right: 8px; color: black; 
     border: 3px solid", color_enlaces, ";
@@ -152,172 +152,178 @@ color: ", color_fondo, " !important;
     color: black; 
     border: 3px solid", color_destacado, ";
     }")),
-  
-  #separador
-  tags$style(paste0("
+
+#separador
+tags$style(paste0("
                     hr {
   border-top: 3px solid ", color_detalle, ";
                     }")),
-  
-  # tags$style(paste0("
-  # .selectize-input, .selectize-input.full {
-  # background: ", color_detalle, ";
-  # color: ", color_fondo, ";
-  # font-size: 80%;
-  # padding: 12px;
-  # border: 0;
-  # }
-  # 
-  # .selectize-control.single .selectize-input:after {
-  # border-color: ", color_fondo, " transparent transparent transparent;
-  # }")),
-  # 
-  
-  
-  # .selectize-dropdown, .shiny-input-select, .form-control, .selectize-dropdown-content {
-  # background: ", color_detalle, ";
-  # color: ", color_fondo, ";
-  # }")),
-  
-  
-  
-  # header ----
-  fluidRow(  
-    column(12,
-           h1("Relacionador de datos Casen 2022"),
-           p("Este visualizador le permite analizar la relación entre múltiples datos socioeconómicos de las comunas del país, en base a los datos de la",
-             tags$a("Encuesta de caracterización socioeconómica nacional (Casen) 2022", target = "_blank", href = "https://observatorio.ministeriodesarrollosocial.gob.cl/encuesta-casen-2022")),
-           p("El gráfico expresa cómo se posicionan las comunas entre dos ejes que pueden representar ingresos, condiciones de vida, o situaciones de vulnerabilidad,
+
+# tags$style(paste0("
+# .selectize-input, .selectize-input.full {
+# background: ", color_detalle, ";
+# color: ", color_fondo, ";
+# font-size: 80%;
+# padding: 12px;
+# border: 0;
+# }
+# 
+# .selectize-control.single .selectize-input:after {
+# border-color: ", color_fondo, " transparent transparent transparent;
+# }")),
+# 
+
+
+# .selectize-dropdown, .shiny-input-select, .form-control, .selectize-dropdown-content {
+# background: ", color_detalle, ";
+# color: ", color_fondo, ";
+# }")),
+
+
+
+# header ----
+fluidRow(  
+  column(12,
+         h1("Relacionador de datos Casen 2022"),
+         p("Este visualizador le permite analizar la relación entre múltiples datos socioeconómicos de las comunas del país, en base a los datos de la",
+           tags$a("Encuesta de caracterización socioeconómica nacional (Casen) 2022", target = "_blank", href = "https://observatorio.ministeriodesarrollosocial.gob.cl/encuesta-casen-2022")),
+         p("El gráfico expresa cómo se posicionan las comunas entre dos ejes que pueden representar ingresos, condiciones de vida, o situaciones de vulnerabilidad,
              expresando así la relación entre las desigualdades y condiciones de vida del país."),
-           
-    )
-  ),
-  
-  #selectores ----
-  fluidRow(
-    column(12,
-           hr(),
-           h3("Seleccionar variables"),
-           p("Seleccione variables socioeconómicas de su interés para relacionarlas unas con otras, o bien, elija variables al azar usando los botones para descubrir nuevas relaciones.")
-    )
-  ),
-  fluidRow(
-    column(12,
-           #eje x
-           column(4, 
-                  div(style = estilo_cuadros,
-                      pickerInput("selector_x",
-                                  label = h4("Variable para el eje horizontal"),
-                                  width = "100%",
-                                  choices = variables, multiple = FALSE,
-                                  options = list( `live-search` = TRUE)
-                      ),
-                      actionButton("azar_x", "Elegir eje X al azar")
-                  )
+         
+  )
+),
+
+#selectores ----
+fluidRow(
+  column(12,
+         hr(),
+         h3("Seleccionar variables"),
+         p("Seleccione variables socioeconómicas de su interés para relacionarlas unas con otras, o bien, elija variables al azar usando los botones para descubrir nuevas relaciones.")
+  )
+),
+fluidRow(
+  column(12,
+         #eje x
+         column(4, 
+                div(style = estilo_cuadros,
+                    pickerInput("selector_x",
+                                label = h4("Variable para el eje horizontal"),
+                                width = "100%",
+                                choices = variables, multiple = FALSE,
+                                options = list( `live-search` = TRUE)
+                    ),
+                    actionButton("azar_x", "Elegir eje X al azar")
+                )
+         ),
+         #eje y
+         column(4, 
+                div(style = estilo_cuadros,
+                    pickerInput("selector_y",
+                                label = h4("Variable para el eje vertical"),
+                                width = "100%",
+                                choices = variables, multiple = FALSE,
+                                selected = "ytotcorh",
+                                options = list( `live-search` = TRUE)
+                    ),
+                    actionButton("azar_y", "Elegir eje Y al azar")
+                )
+         ),
+         
+         #tamaño
+         column(4, div(
+           style = estilo_cuadros,
+           pickerInput("selector_size",
+                       label = h4("Variable para el tamaño"),
+                       width = "100%",
+                       choices = variables, multiple = FALSE,
+                       selected = "poblacion",
+                       options = list( `live-search` = TRUE)
            ),
-           #eje y
-           column(4, 
-                  div(style = estilo_cuadros,
-                      pickerInput("selector_y",
-                                  label = h4("Variable para el eje vertical"),
-                                  width = "100%",
-                                  choices = variables, multiple = FALSE,
-                                  selected = "ytotcorh",
-                                  options = list( `live-search` = TRUE)
-                      ),
-                      actionButton("azar_y", "Elegir eje Y al azar")
-                  )
-           ),
-           
-           #tamaño
-           column(4, div(
-             style = estilo_cuadros,
-             pickerInput("selector_size",
-                         label = h4("Variable para el tamaño"),
-                         width = "100%",
-                         choices = variables, multiple = FALSE,
-                         selected = "poblacion",
-                         options = list( `live-search` = TRUE)
-             ),
-             actionButton("azar_size", "Elegir tamaño al azar")
-           )
-           )
-    )
-  ),
-  
-  fluidRow(
-    column(12, align = "center", 
-           style = "margin-top: 14px; margin-bottom: 24px;",
-           actionButton("azar", "Elegir todas las variables al azar", style = "padding-left: 24px; padding-right: 24px;")
-    )
-  ),
-  
-  # territorios ----
-  fluidRow(
-    column(12,
-           hr(),
-           h3("Seleccionar territorios"),
-           p("Elija una o más regiones para posteriormente elegir una o varias comunas que serán incluidas en el gráfico.")
-    )
-  ),
-  fluidRow(
-    column(12,
-           column(6, 
-                  div(style = paste(estilo_cuadros, "padding-bottom: 55px;"),
-                  pickerInput("selector_regiones",
-                              label = h4("Regiones"),
-                              width = "100%",
-                              multiple = TRUE,
-                              selected = "Región Metropolitana de Santiago", 
-                              choices = NULL,
-                              options = list( `live-search` = TRUE)
-                  )
-                  # em("Seleccione una o más regiones para filtrar el selector de comunas a continuación")
-                  )
-           ),
-           column(6,  
-                  div(style = estilo_cuadros,   
-                  pickerInput("selector_comunas",
-                              label = h4("Comunas que desea graficar"),
-                              width = "100%",
-                              multiple = TRUE,
-                              choices = NULL,
-                              selected = c("La Florida", "Puente Alto", "La Pintana", "Ñuñoa", "Vitacura", "Providencia", "Lo Barnechea"),
-                              options = list( `live-search` = TRUE)
-                  ),
-                  
-                  actionButton("azar_comunas", "Elegir comunas al azar")
-           )
-           )
-    )
-    
-  ),
-  
-  
-  #grafico ----
-  fluidRow(
-    column(12,
-           hr(),
-           h3("Visualizar")
-    ),
-    column(12, align = "center", style = "padding: 24px;",
-           plotOutput("grafico", width = 600, height = 500)
-    )
-  ),
-  
-  # firma ----
-  fluidRow(
-    column(12,
-           hr(),
-           p("Diseñado y programado por",
-             tags$a("Bastián Olea Herrera.", target = "_blank", href = "https://bastian.olea.biz")),
-           p(
-             "Código de fuente de esta app y del procesamiento de los datos",
-             tags$a("disponible en GitHub.", target = "_blank", href = "https://github.com/bastianolea/casen_relacionador")
-           )
-    )
+           actionButton("azar_size", "Elegir tamaño al azar")
+         )
+         )
+  )
+),
+
+fluidRow(
+  column(12, align = "center", 
+         style = "margin-top: 14px; margin-bottom: 24px;",
+         actionButton("azar", "Elegir todas las variables al azar", style = "padding-left: 24px; padding-right: 24px;")
+  )
+),
+
+# territorios ----
+fluidRow(
+  column(12,
+         hr(),
+         h3("Seleccionar territorios"),
+         p("Elija una o más regiones para posteriormente elegir una o varias comunas que serán incluidas en el gráfico.")
+  )
+),
+fluidRow(
+  column(12,
+         column(6, 
+                div(style = paste(estilo_cuadros, "padding-bottom: 55px;"),
+                    pickerInput("selector_regiones",
+                                label = h4("Regiones"),
+                                width = "100%",
+                                multiple = TRUE,
+                                selected = "Región Metropolitana de Santiago", 
+                                choices = NULL,
+                                options = list( `live-search` = TRUE)
+                    )
+                    # em("Seleccione una o más regiones para filtrar el selector de comunas a continuación")
+                )
+         ),
+         column(6,  
+                div(style = estilo_cuadros,   
+                    pickerInput("selector_comunas",
+                                label = h4("Comunas que desea graficar"),
+                                width = "100%",
+                                multiple = TRUE,
+                                choices = NULL,
+                                selected = c("La Florida", "Puente Alto", "La Pintana", "Ñuñoa", "Vitacura", "Providencia", "Lo Barnechea"),
+                                options = list( `live-search` = TRUE)
+                    ),
+                    
+                    actionButton("azar_comunas", "Elegir comunas al azar")
+                )
+         )
   )
   
+),
+
+
+#grafico ----
+fluidRow(
+  column(12,
+         hr(),
+         h3("Visualizar"),
+         
+         # div(style = "line-height: 1em;",
+         uiOutput("texto_etiqueta_x")|> div(style = "margin-bottom: -10px;"),
+         uiOutput("texto_etiqueta_y") |> div(style = "margin-bottom: -10px;"),
+         uiOutput("texto_etiqueta_size")|> div(style = "margin-bottom: -10px;")
+         
+  ),
+  column(12, align = "center", style = "padding: 24px;",
+         plotOutput("grafico", width = 600, height = 500)
+  )
+),
+
+# firma ----
+fluidRow(
+  column(12,
+         hr(),
+         p("Diseñado y programado por",
+           tags$a("Bastián Olea Herrera.", target = "_blank", href = "https://bastian.olea.biz")),
+         p(
+           "Código de fuente de esta app y del procesamiento de los datos",
+           tags$a("disponible en GitHub.", target = "_blank", href = "https://github.com/bastianolea/casen_relacionador")
+         )
+  )
+)
+
 )
 
 
@@ -408,13 +414,32 @@ server <- function(input, output, session) {
                          selected = sample(variables_numericas, 1))
   })
   
+  # etiquetas ----
+  etiqueta_y <- reactive(nombre_variable(input$selector_y))
+  etiqueta_x  <- reactive(nombre_variable(input$selector_x))
+  etiqueta_size <- reactive(nombre_variable(input$selector_size))
+  comunas <- reactive({
+    req(length(input$selector_comunas) > 0)
+    comunas <- input$selector_comunas |> paste(collapse = ", ")
+    comunas
+  })
+  
+  output$texto_etiqueta_y <- renderUI(p("Eje vertical:", 
+                                        strong(etiqueta_y(), style = paste0("color: ", color_destacado, ";")), 
+                                        #p(glue("({input$selector_y})"), style = paste0("color: ", color_detalle, ";"))
+                                        ))
+  output$texto_etiqueta_x <- renderUI(p("Eje horizontal:", 
+                                        strong(etiqueta_x(), style = paste0("color: ", color_destacado, ";"))
+                                        ))
+  output$texto_etiqueta_size <- renderUI(p("Tamaño:", 
+                                           strong(etiqueta_size(), style = paste0("color: ", color_destacado, ";"))
+                                                             ))
   
   # calcular ----
-  
   datos <- reactive({
     req(length(input$selector_comunas) > 0)
     
-    message("comunas: ", input$selector_comunas |> paste(collapse = ", "))
+    message("comunas: ", comunas())
     message("variable x: ", input$selector_x)
     message("variable y: ", input$selector_y)
     message("variable size: ", input$selector_size)
@@ -428,6 +453,8 @@ server <- function(input, output, session) {
                       input$selector_y,
                       input$selector_size)))
   })
+  
+  
   
   
   #gráfico ----
@@ -463,7 +490,7 @@ server <- function(input, output, session) {
             legend.text = element_text(color = color_texto, size = 13),
             legend.title = element_text(color = color_destacado, face = "bold", size = 17),
             axis.title = element_text(color = color_destacado, face = "bold", size = 17)
-            ) +
+      ) +
       #fondo
       theme(panel.background = element_rect(fill = color_fondo, linewidth = 0),
             plot.background = element_rect(fill = color_fondo, linewidth = 0),
@@ -472,10 +499,10 @@ server <- function(input, output, session) {
       guides(size = guide_legend(override.aes = list(color = color_detalle)),
              col = guide_legend(override.aes = list(size = 6))) +
       # #etiquetas
-      labs(y = nombre_variable(input$selector_y),
-           x = nombre_variable(input$selector_x),
+      labs(y = etiqueta_y(),
+           x = etiqueta_x(),
            col = "Comunas",
-           size = nombre_variable(input$selector_size) |> str_wrap(25)
+           size = etiqueta_size() |> str_wrap(25)
       )
     # browser()
     
