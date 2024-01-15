@@ -10,7 +10,7 @@ library(stringr)
 casen2022_2 <- arrow::read_parquet("datos/casen2022.parquet")
 
 #ejecutar script con listas de variables relevantes
-source("variables.R")
+source("app/variables.R")
 
 
 # filtrar variables y aplicar factor de expansión ----
@@ -116,6 +116,20 @@ casen2022_comunas_5 <- casen2022_comunas_4 |>
 # casen2022_comunas |> count(v12mt)
 
 glimpse(casen2022_comunas_5)
+
+#revisar variables ----
+variables
+# "Jubilación o pensión de vejez (promedio)" = "y28_2c",
+# "Número de hijos vivos" = "s4",
+
+casen2022_comunas_5 |> count(v12mt)
+# casen2022_comunas_5 |> count(area)
+casen2022_comunas_5 |> count(hacinamiento)
+casen2022_comunas_5 |> count(y2803)
+
+
+
+nombre_variable("hacinamiento")
 
 #guardar datos preparados para su uso en la app
 readr::write_csv2(casen2022_comunas_5, "casen_comunas.csv")

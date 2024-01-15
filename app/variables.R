@@ -21,8 +21,10 @@ variables_casen <- c(
   "ytrabajocor",             #ingreso del trabajo
   "ytrabajocorh",            #ingreso del trabajo del hogar
   "ypchautcor",              #ingreso autónomo per cápita 
-  "y26_2c",                  #jubilación o pensión
-  "y28_2c",                  #y28_2c. Monto Jubilación o Pensión de Vejez
+  # "y26_2c",                  #jubilación o pensión
+  # "y28_2c",                  #y28_2c. Monto Jubilación o Pensión de Vejez
+  # "y28_2b1",   #y28_2b1. Monto Jubilación o Pensión de Vejez sin APS
+  "y2803",                  #"Jubilación o pensión de vejez"
   "y0101",                   #Asalariados principal - Sueldos y salarios monetario
   "yosa",                    #Ingresos de la ocupación secundaria - Asalariados
   "ytot",                    #Ingreso total
@@ -78,6 +80,8 @@ variables_numericas_personas <- c(
   "Años de escolaridad promedio" = "esc",
   "Edad promedio" = "edad",
   "Ingreso del trabajo" = "ytrabajocor",
+  # "Jubilación o pensión de vejez (sin APS)" = "y28_2b1",
+  "Jubilación o pensión de vejez" = "y2803",
   # "Jubilación o pensión de vejez (promedio)" = "y28_2c",
   # "Número de hijos vivos" = "s4",
   "Decil autónomo regional" = "dautr",
@@ -97,12 +101,12 @@ variables <- list(
   "Variables de hogares" = c(variables_numericas_hogar,
                              "Cantidad de hogares" = "hogares",
                              "Hogares en zonas rurales" = "rural",
-                             "Hogares en situación de hacinamiento (4 personas o más)" = "hacinamiento",
                              "Hogares con menores de 18 años" = "men18c",
                              "Hogares con mayores de 60 años" = "may60c",
                              "Cantidad de viviendas propias" = "vivienda_propia",
                              "Cantidad de viviendas pequeñas (30m cuadrados o menos)" = "vivienda_pequeña",
                              "Hogares con jefatura femenina" = "hogar_jefatura_femenina",
+                             "Hogares hacinados (4 personas o más)" = "hacinamiento",  
                              "Porcentaje de hogares en zonas rurales" = "rural_p",
                              "Porcentaje de hogares con menores de 18 años" = "men18c_p",
                              "Porcentaje de hogares con mayores de 60 años" = "may60c_p",
@@ -115,7 +119,6 @@ variables <- list(
   #conteos
   "Variables poblacionales" = c(
     "Población" = "poblacion",
-    "Personas en situación de hacinamiento" = "hacinamiento",  
     "Personas en situación de pobreza" = "pobreza",
     "Personas en situación de pobreza multidimensional" = "pobreza_multi",
     "Personas pertenecientes a pueblos originarios" = "originario",
