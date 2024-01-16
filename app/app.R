@@ -9,12 +9,6 @@ library(glue)
 
 options(scipen=999)
 
-color_fondo = "#45171d"
-color_secundario = "#ff847c"
-color_detalle = "#ff847c"
-color_texto = "#fecea8"
-color_destacado = "#e84a5f"
-
 color_fondo = "#3c1b1f"
 color_secundario = "#db8d6c"
 color_detalle = "#62393e"
@@ -158,27 +152,6 @@ tags$style(paste0("
                     hr {
   border-top: 3px solid ", color_detalle, ";
                     }")),
-
-# tags$style(paste0("
-# .selectize-input, .selectize-input.full {
-# background: ", color_detalle, ";
-# color: ", color_fondo, ";
-# font-size: 80%;
-# padding: 12px;
-# border: 0;
-# }
-# 
-# .selectize-control.single .selectize-input:after {
-# border-color: ", color_fondo, " transparent transparent transparent;
-# }")),
-# 
-
-
-# .selectize-dropdown, .shiny-input-select, .form-control, .selectize-dropdown-content {
-# background: ", color_detalle, ";
-# color: ", color_fondo, ";
-# }")),
-
 
 
 # header ----
@@ -505,16 +478,11 @@ server <- function(input, output, session) {
            size = etiqueta_size() |> str_wrap(25)
       )
     # browser()
-    
     # nombre_variable(input$selector_y)
     
     return(p)
     
   })
-  
-  
-  
-  
 }
 
 

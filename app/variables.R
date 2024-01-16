@@ -46,7 +46,7 @@ variables_casen <- c(
   "numper",                  #numero de personas en el hogar
   # "s4",                      #hijos vivos
   "pco1",                    #jefe de hogar
-  "v12",                     #metros cuadrados de la casa
+  # "v12",                     #metros cuadrados de la casa
   "indmat",                  #índice de materialidad de la vivienda
   "v12mt",
   
@@ -127,6 +127,7 @@ variables <- list(
     "Personas en situación de desocupación laboral" = "desocupados",
     "Afiliados a previsión de salud Fonasa" = "fonasa",
     "Afiliados a previsión de salud Isapre" = "isapre",
+    "Personas con estudios superiores (técnico o profesional)" = "estudios_superiores",
     #
     "Porcentaje de personas en situación de pobreza" = "pobreza_p",
     "Porcentaje de personas en situación de pobreza multidimensional" = "pobreza_multi_p",
@@ -135,7 +136,8 @@ variables <- list(
     "Porcentaje de personas en situación laboral inactiva" = "inactivos_p",
     "Porcentaje de personas en situación laboral desocupada" = "desocupados_p",
     "Porcentaje de afiliados a previsión de salud Fonasa" = "fonasa_p",
-    "Porcentaje de afiliados a previsión de salud Isapre" = "isapre_p"
+    "Porcentaje de afiliados a previsión de salud Isapre" = "isapre_p",
+    "Porcentaje de personas con estudios superiores (técnico o profesional)" = "estudios_superiores_p"
   )
 )
 

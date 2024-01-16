@@ -70,7 +70,8 @@ casen2022_comunas_personas <- casen2022_comunas_2 %>%
             desocupados = sum(activ == "Desocupados", na.rm=TRUE),
             pobreza_multi = sum(pobreza_multi_5d == "Pobreza", na.rm=TRUE),
             fonasa = sum(str_detect(s13, "FONASA"), na.rm=TRUE),
-            isapre = sum(str_detect(s13, "Isapre"), na.rm=TRUE)
+            isapre = sum(str_detect(s13, "Isapre"), na.rm=TRUE),
+            estudios_superiores = sum(educ %in% c("Técnico nivel superior completo", "Profesional completo", "Posgrado incompleto", "Posgrado completo"), na.rm=TRUE),
   ) |> 
   ungroup()
 
@@ -99,11 +100,13 @@ casen2022_comunas_4 <- casen2022_comunas_personas |>
 
 # porcentajes ----
 casen2022_comunas_5 <- casen2022_comunas_4 |> 
+  group_by(comuna, cut_comuna, region) |>
   #porcentaje en relación a población
-  mutate(across(c(pobreza, originario, extranjero, inactivos, desocupados, pobreza_multi, fonasa),
+  mutate(across(c(pobreza, originario, extranjero, inactivos, desocupados, pobreza_multi, fonasa, isapre,
+                  estudios_superiores),
                 ~.x/poblacion, .names = "{.col}_p")) |> 
   #porcentaje en relación a viviendas
-  mutate(across(c(men18c, may60c, vivienda_propia, vivienda_pequeña, hogar_jefatura_femenina, hacinamiento),
+  mutate(across(c(hogar_jefatura_femenina, hacinamiento, men18c, rural, may60c, vivienda_propia, vivienda_pequeña),
                 ~.x/hogares, .names = "{.col}_p"))
 
 # casen2022_comunas_5 |> View()
@@ -123,13 +126,23 @@ variables
 # "Número de hijos vivos" = "s4",
 
 casen2022_comunas_5 |> count(v12mt)
-# casen2022_comunas_5 |> count(area)
+casen2022_comunas_5 |> count(area)
 casen2022_comunas_5 |> count(hacinamiento)
 casen2022_comunas_5 |> count(y2803)
+casen2022_comunas_5 |> count(rural_p)
+casen2022_comunas_5 |> count(fonasa)
+casen2022_comunas_5 |> count(isapre_p)
 
+#probar todas las variables
+walk(unlist(variables), ~{
+  message("probando ", .x)
+  .variable <- unname(.x)
+  
+  conteo <- casen2022_comunas_5 |> count(!!sym(.variable))
+  message(nrow(conteo))
+})
 
-
-nombre_variable("hacinamiento")
+# nombre_variable("hacinamiento")
 
 #guardar datos preparados para su uso en la app
-readr::write_csv2(casen2022_comunas_5, "casen_comunas.csv")
+readr::write_csv2(casen2022_comunas_5, "app/casen_comunas.csv")
