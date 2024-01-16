@@ -280,7 +280,8 @@ fluidRow(
          # 
   ),
   column(12, align = "center", style = "padding: 0px;",
-         plotOutput("grafico", width = 700, height = 600)
+         plotOutput("grafico", width = 760, height = 600) |> 
+           withSpinner(color = color_destacado, type = 8)
   )
 ),
 
