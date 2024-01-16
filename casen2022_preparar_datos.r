@@ -99,14 +99,18 @@ casen2022_comunas_4 <- casen2022_comunas_personas |>
 
 
 # porcentajes ----
+variables_personas <- casen2022_comunas_personas |> select(where(is.numeric)) |> names() |> str_subset("poblacion", negate = TRUE)
+variables_hogares <- casen2022_comunas_hogares |> select(where(is.numeric)) |> names() |> str_subset("hogares", negate = TRUE)
+
 casen2022_comunas_5 <- casen2022_comunas_4 |> 
   group_by(comuna, cut_comuna, region) |>
   #porcentaje en relación a población
-  mutate(across(c(pobreza, originario, extranjero, inactivos, desocupados, pobreza_multi, fonasa, isapre,
-                  estudios_superiores),
+  # mutate(across(c(pobreza, originario, extranjero, inactivos, desocupados, pobreza_multi, fonasa, isapre,
+  mutate(across(any_of(variables_personas),
                 ~.x/poblacion, .names = "{.col}_p")) |> 
   #porcentaje en relación a viviendas
-  mutate(across(c(hogar_jefatura_femenina, hacinamiento, men18c, rural, may60c, vivienda_propia, vivienda_pequeña),
+  # mutate(across(c(hogar_jefatura_femenina, hacinamiento, men18c, rural, may60c, vivienda_propia, vivienda_pequeña),
+  mutate(across(any_of(c("hogar_jefatura_femenina", variables_hogares)),
                 ~.x/hogares, .names = "{.col}_p"))
 
 # casen2022_comunas_5 |> View()

@@ -5,7 +5,7 @@ account: bastianoleah
 server: shinyapps.io
 hostUrl: https://api.shinyapps.io/v1
 appId: 10926798
-bundleId: 8146449
+bundleId: 8150875
 url: https://bastianoleah.shinyapps.io/casen_relacionador/
 version: 1
 asMultiple: FALSE

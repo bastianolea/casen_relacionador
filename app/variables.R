@@ -46,7 +46,7 @@ variables_casen <- c(
   "numper",                  #numero de personas en el hogar
   # "s4",                      #hijos vivos
   "pco1",                    #jefe de hogar
-  # "v12",                     #metros cuadrados de la casa
+  "v12",                     #metros cuadrados de la casa
   "indmat",                  #índice de materialidad de la vivienda
   "v12mt",
   
