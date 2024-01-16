@@ -157,73 +157,18 @@ tags$style(paste0("
 # header ----
 fluidRow(  
   column(12,
-         h1("Relacionador de datos Casen 2022"),
-         p("Este visualizador le permite analizar la relación entre múltiples datos socioeconómicos de las comunas del país, en base a los datos de la",
+         div(style = "margin-bottom: 16px;",
+             h1("Relacionador de datos Casen 2022"),
+             em("Bastián Olea Herrera")
+         ),
+         p("Este visualizador permite analizar la relación entre múltiples datos socioeconómicos de un conjunto personalizable de comunas del país, en base a los datos de la",
            tags$a("Encuesta de caracterización socioeconómica nacional (Casen) 2022", target = "_blank", href = "https://observatorio.ministeriodesarrollosocial.gob.cl/encuesta-casen-2022")),
-         p("El gráfico expresa cómo se posicionan las comunas entre dos ejes que pueden representar ingresos, condiciones de vida, o situaciones de vulnerabilidad,
+         p("El gráfico generado, ubicado en la parte inferior, visualiza el posicionamiento de las comunas elegidas entre dos ejes numéricos (horizontal y vertical), que pueden representar ingresos, condiciones de vida, o situaciones de vulnerabilidad,
              expresando así la relación entre las desigualdades y condiciones de vida del país."),
          
   )
 ),
 
-#selectores ----
-fluidRow(
-  column(12,
-         hr(),
-         h3("Seleccionar variables"),
-         p("Seleccione variables socioeconómicas de su interés para relacionarlas unas con otras, o bien, elija variables al azar usando los botones para descubrir nuevas relaciones.")
-  )
-),
-fluidRow(
-  column(12,
-         #eje x
-         column(4, 
-                div(style = estilo_cuadros,
-                    pickerInput("selector_x",
-                                label = h4("Variable para el eje horizontal"),
-                                width = "100%",
-                                choices = variables, multiple = FALSE,
-                                options = list( `live-search` = TRUE)
-                    ),
-                    actionButton("azar_x", "Elegir eje X al azar")
-                )
-         ),
-         #eje y
-         column(4, 
-                div(style = estilo_cuadros,
-                    pickerInput("selector_y",
-                                label = h4("Variable para el eje vertical"),
-                                width = "100%",
-                                choices = variables, multiple = FALSE,
-                                selected = "ytotcorh",
-                                options = list( `live-search` = TRUE)
-                    ),
-                    actionButton("azar_y", "Elegir eje Y al azar")
-                )
-         ),
-         
-         #tamaño
-         column(4, div(
-           style = estilo_cuadros,
-           pickerInput("selector_size",
-                       label = h4("Variable para el tamaño"),
-                       width = "100%",
-                       choices = variables, multiple = FALSE,
-                       selected = "poblacion",
-                       options = list( `live-search` = TRUE)
-           ),
-           actionButton("azar_size", "Elegir tamaño al azar")
-         )
-         )
-  )
-),
-
-fluidRow(
-  column(12, align = "center", 
-         style = "margin-top: 14px; margin-bottom: 24px;",
-         actionButton("azar", "Elegir todas las variables al azar", style = "padding-left: 24px; padding-right: 24px;")
-  )
-),
 
 # territorios ----
 fluidRow(
@@ -263,8 +208,63 @@ fluidRow(
                 )
          )
   )
-  
 ),
+
+
+#selectores ----
+fluidRow(
+  column(12,
+         hr(),
+         h3("Seleccionar variables"),
+         p("Seleccione variables socioeconómicas de su interés para relacionarlas unas con otras, o bien, elija variables al azar usando los botones para descubrir nuevas relaciones.")
+  )
+),
+fluidRow(
+  column(12,
+         #eje x
+         column(4, 
+                div(style = estilo_cuadros,
+                    pickerInput("selector_x",
+                                label = h4("Variable para el eje horizontal"),
+                                choices = variables, 
+                                multiple = FALSE, width = "100%", options = list(`live-search` = TRUE)
+                    ),
+                    actionButton("azar_x", "Elegir eje X al azar")
+                )
+         ),
+         #eje y
+         column(4, 
+                div(style = estilo_cuadros,
+                    pickerInput("selector_y",
+                                label = h4("Variable para el eje vertical"),
+                                choices = variables, selected = "ytotcorh",
+                                multiple = FALSE, width = "100%", options = list(`live-search` = TRUE)
+                    ),
+                    actionButton("azar_y", "Elegir eje Y al azar")
+                )
+         ),
+         #tamaño
+         column(4, 
+                div(style = estilo_cuadros,
+                    pickerInput("selector_size",
+                                label = h4("Variable para el tamaño"),
+                                choices = variables, selected = "poblacion",
+                                multiple = FALSE, width = "100%", options = list(`live-search` = TRUE)
+                    ),
+                    actionButton("azar_size", "Elegir tamaño al azar")
+                )
+         )
+  )
+),
+
+fluidRow(
+  column(12, align = "center", 
+         style = "margin-top: 14px; margin-bottom: -4px;",
+         actionButton("azar", "Elegir todas las variables al azar", style = "padding-left: 24px; padding-right: 24px;")
+  )
+),
+
+
 
 
 #grafico ----
@@ -273,14 +273,14 @@ fluidRow(
          hr(),
          h3("Visualizar"),
          
-         # div(style = "line-height: 1em;",
-         uiOutput("texto_etiqueta_x")|> div(style = "margin-bottom: -10px;"),
-         uiOutput("texto_etiqueta_y") |> div(style = "margin-bottom: -10px;"),
-         uiOutput("texto_etiqueta_size")|> div(style = "margin-bottom: -10px;")
-         
+         # # div(style = "line-height: 1em;",
+         # uiOutput("texto_etiqueta_x")|> div(style = "margin-bottom: -10px;"),
+         # uiOutput("texto_etiqueta_y") |> div(style = "margin-bottom: -10px;"),
+         # uiOutput("texto_etiqueta_size")|> div(style = "margin-bottom: -10px;")
+         # 
   ),
-  column(12, align = "center", style = "padding: 24px;",
-         plotOutput("grafico", width = 600, height = 500)
+  column(12, align = "center", style = "padding: 0px;",
+         plotOutput("grafico", width = 700, height = 600)
   )
 ),
 
@@ -293,7 +293,9 @@ fluidRow(
          p(
            "Código de fuente de esta app y del procesamiento de los datos",
            tags$a("disponible en GitHub.", target = "_blank", href = "https://github.com/bastianolea/casen_relacionador")
-         )
+         ),
+         div(style = "height: 40px")
+         
   )
 )
 
@@ -400,13 +402,13 @@ server <- function(input, output, session) {
   output$texto_etiqueta_y <- renderUI(p("Eje vertical:", 
                                         strong(etiqueta_y(), style = paste0("color: ", color_destacado, ";")), 
                                         #p(glue("({input$selector_y})"), style = paste0("color: ", color_detalle, ";"))
-                                        ))
+  ))
   output$texto_etiqueta_x <- renderUI(p("Eje horizontal:", 
                                         strong(etiqueta_x(), style = paste0("color: ", color_destacado, ";"))
-                                        ))
+  ))
   output$texto_etiqueta_size <- renderUI(p("Tamaño:", 
                                            strong(etiqueta_size(), style = paste0("color: ", color_destacado, ";"))
-                                                             ))
+  ))
   
   # calcular ----
   datos <- reactive({
@@ -432,19 +434,23 @@ server <- function(input, output, session) {
   
   #gráfico ----
   output$grafico <- renderPlot({
+    # browser()
+    # dev.new()
     
-    p <- datos() |> 
-      ggplot(aes(x = .data[[input$selector_x]],
-                 y = .data[[input$selector_y]],
-                 col = comuna,
-                 size = .data[[input$selector_size]])
-      ) +
-      geom_point(col= "white") +
-      geom_point(alpha=0.7) +
+    datos() |> 
+      ggplot(
+        aes(x = .data[[input$selector_x]],
+            y = .data[[input$selector_y]],
+            col = comuna,
+            size = .data[[input$selector_size]])) +
+      # geom_smooth(col = color_secundario, linewidth = 2, method = "lm", alpha = 0, show.legend = F) +
+      stat_smooth(method = "lm",
+                  linewidth = 1.5, col = color_destacado, linetype = "dashed",
+                  se = FALSE, fullrange = T, show.legend = F) +
+      geom_point(alpha = 0.7) +
       ggrepel::geom_text_repel(aes(label = comuna),
-                               size = 4, point.padding = 25,
-                               min.segment.length = 2,
-                               show.legend = FALSE) +
+                               size = 4, 
+                               point.padding = 25, min.segment.length = 2, show.legend = FALSE) +
       ### escalas ----
     scale_size(range = c(5, 15),
                labels = function(x) format(x, big.mark = ".", decimal.mark = ",")) +
@@ -460,7 +466,8 @@ server <- function(input, output, session) {
             panel.grid.minor = element_blank(),
             panel.border = element_blank(),
             axis.text = element_text(color = color_texto, size = 13),
-            legend.text = element_text(color = color_texto, size = 13),
+            axis.text.y = element_text(margin = margin(l = 6)),
+            legend.text = element_text(color = color_texto, size = 13, margin = margin(t= 4, b = 4)),
             legend.title = element_text(color = color_destacado, face = "bold", size = 17),
             axis.title = element_text(color = color_destacado, face = "bold", size = 17)
       ) +
@@ -477,11 +484,6 @@ server <- function(input, output, session) {
            col = "Comunas",
            size = etiqueta_size() |> str_wrap(25)
       )
-    # browser()
-    # nombre_variable(input$selector_y)
-    
-    return(p)
-    
   })
 }
 
