@@ -11,3 +11,11 @@ Tanto la aplicación como el procesamiento de los datos, incluida la descarga de
 [La aplicación web está disponible en shinyapps.io](https://bastianoleah.shinyapps.io/casen_relacionador), o bien, puedes clonar este repositorio en tu equipo para usarla por medio de RStudio.
 
 ![Relacionador Casen](www/relacionador_casen_2022.jpg "Relacionador Casen")
+
+----
+
+Diseñado y programado en R por Bastián Olea Herrera. Magíster en Sociología, data scientist.
+
+https://bastian.olea.biz
+
+bastianolea arroba gmail punto com

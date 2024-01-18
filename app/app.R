@@ -105,7 +105,7 @@ ui <- fluidPage(
                    font-size: 85%;
                    }")),
   
-  # >a, .dropdown-menu>.active>a:hover, .dropdown-menu>.active>a:focus {
+  #colores pickers
   tags$style(paste0("
          .dropdown-menu,  .divider {
           color: black !important;
@@ -130,10 +130,10 @@ ui <- fluidPage(
          color: black !important;
          background: ", color_destacado, " !important;
          }
-.selected {
-background-color: ", color_secundario, " !important;
-color: ", color_fondo, " !important;
-}")),
+         .selected {
+         background-color: ", color_secundario, " !important;
+         color: ", color_fondo, " !important;
+         }")),
 
 #botones, botones hover
 tags$style(paste0("
@@ -318,7 +318,6 @@ server <- function(input, output, session) {
   )
   
   #pone las comunas en el selector de comunas según la región elegida
-  
   lista_comunas <- reactive({
     if ("Todas las regiones" %in% input$selector_regiones) {
       lista_comunas <- split(casen_comunas$comuna, casen_comunas$region)
