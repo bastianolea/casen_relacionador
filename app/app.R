@@ -9,7 +9,8 @@ library(glue)
 
 options(scipen=999)
 
-color_fondo = "#3c1b1f"
+color_fondo = "#301519" 
+# color_fondo = "#3c1b1f"
 color_secundario = "#db8d6c"
 color_detalle = "#62393e"
 color_texto = "#fecea8"
@@ -20,9 +21,15 @@ color_enlaces = "#cc3865"
 source("variables.R")
 
 #cargar datos ----
+# setwd("app/")
 casen_comunas <- readr::read_csv2("casen_comunas.csv", 
                                   col_types = c(rep("c", 3), rep("n", 44))
-)
+) |> 
+  #seleccionar solo columnas que van a usarse
+  select(comuna, cut_comuna, region,
+         any_of(variables |> unlist() |> unname())
+  )
+
 variables_numericas <- casen_comunas |> select(where(is.numeric)) |> select(-cut_comuna) |> names()
 
 
@@ -33,8 +40,8 @@ nombre_variable <- function(texto) {
   unlist(variables)[unlist(variables) == texto] |> names() |> str_remove(".*\\.")
 }
 
-estilo_cuadros <- glue("margin: -6px; margin-top: 10px; margin-bottom: 10px;
-                           padding: 20px;
+estilo_cuadros <- glue("margin: -6px; margin-top: 10px; margin-bottom: 14px;
+                           padding: 16px;
                            padding-top: 0;
                            border-radius: 8px;
            border: 3px solid {color_detalle} ;")
@@ -118,11 +125,18 @@ ui <- fluidPage(
          font-weight: bold;
          font-size: 110%;
          }
+         
          .text {
          color: black !important;
+         font-size: 80%;
          }
          .form-control {
          color: ", color_texto, " !important;
+         box-shadow: none;
+         }
+         
+         .form-control:focus {
+         border-color: ", color_secundario, ";
          box-shadow: none;
          }
          
@@ -134,9 +148,9 @@ ui <- fluidPage(
          background-color: ", color_secundario, " !important;
          color: ", color_fondo, " !important;
          }")),
-
-#botones, botones hover
-tags$style(paste0("
+  
+  #botones, botones hover
+  tags$style(paste0("
     .action-button {
     opacity: 0.6; font-size: 80%; padding: 4px; padding-left: 8px; padding-right: 8px; color: black; 
     border: 3px solid", color_enlaces, ";
@@ -146,160 +160,173 @@ tags$style(paste0("
     color: black; 
     border: 3px solid", color_destacado, ";
     }")),
-
-#separador
-tags$style(paste0("
+  
+  #separador
+  tags$style(paste0("
                     hr {
   border-top: 3px solid ", color_detalle, ";
                     }")),
-
-
-# header ----
-fluidRow(  
-  column(12,
-         div(style = "margin-bottom: 16px;",
-             h1("Relacionador de datos Casen 2022"),
-             em("Bastián Olea Herrera")
-         ),
-         p("Este visualizador permite analizar la relación entre múltiples datos socioeconómicos de un conjunto personalizable de comunas del país, en base a los datos de la",
-           tags$a("Encuesta de caracterización socioeconómica nacional (Casen) 2022", target = "_blank", href = "https://observatorio.ministeriodesarrollosocial.gob.cl/encuesta-casen-2022")),
-         p("El gráfico generado, ubicado en la parte inferior, visualiza el posicionamiento de las comunas elegidas entre dos ejes numéricos (horizontal y vertical), que pueden representar ingresos, condiciones de vida, o situaciones de vulnerabilidad,
+  
+  tags$style(paste0("
+  .bs-placeholder, .bs-placeholder:active, bs-placeholder:focus, .bs-placeholder:hover {
+    color: ", color_fondo, " !important;
+  }")),
+  
+  
+  
+  # header ----
+  fluidRow(  
+    column(12,
+           div(style = "margin-bottom: 16px;",
+               h1("Relacionador de datos Casen 2022"),
+               em("Bastián Olea Herrera")
+           ),
+           p("Este visualizador permite analizar la relación entre múltiples datos socioeconómicos de un conjunto personalizable de comunas del país, en base a los datos de la",
+             tags$a("Encuesta de caracterización socioeconómica nacional (Casen) 2022", target = "_blank", href = "https://observatorio.ministeriodesarrollosocial.gob.cl/encuesta-casen-2022")),
+           p("El gráfico generado, ubicado en la parte inferior, visualiza el posicionamiento de las comunas elegidas entre dos ejes numéricos (horizontal y vertical), que pueden representar ingresos, condiciones de vida, o situaciones de vulnerabilidad,
              expresando así la relación entre las desigualdades y condiciones de vida del país."),
-         
-  )
-),
-
-
-# territorios ----
-fluidRow(
-  column(12,
-         hr(),
-         h3("Seleccionar territorios"),
-         p("Elija una o más regiones para posteriormente elegir una o varias comunas que serán incluidas en el gráfico.")
-  )
-),
-fluidRow(
-  column(12,
-         column(6, 
-                div(style = paste(estilo_cuadros, "padding-bottom: 55px;"),
-                    pickerInput("selector_regiones",
-                                label = h4("Regiones"),
-                                width = "100%",
-                                multiple = TRUE,
-                                selected = "Región Metropolitana de Santiago", 
-                                choices = NULL,
-                                options = list( `live-search` = TRUE)
+           
+    )
+  ),
+  
+  
+  fluidRow(
+    
+    # territorios ----
+    column(12,
+           hr(),
+           h3("Seleccionar territorios"),
+           p("Elija una o más regiones para luego elegir una o varias comunas para incluir en el gráfico:"),
+           
+           fluidRow(
+             column(6,
+                    
+                    div(style = paste(estilo_cuadros, "padding-bottom: 55px;"),
+                        pickerInput("selector_regiones",
+                                    label = h4("Regiones"),
+                                    width = "100%",
+                                    multiple = TRUE,
+                                    selected = "Región Metropolitana de Santiago", 
+                                    choices = NULL,
+                                    # options = list(`live-search` = TRUE)
+                                    options = list(noneSelectedText = "Sin selección",
+                                                   width = FALSE)
+                        )
                     )
-                    # em("Seleccione una o más regiones para filtrar el selector de comunas a continuación")
-                )
-         ),
-         column(6,  
-                div(style = estilo_cuadros,   
-                    pickerInput("selector_comunas",
-                                label = h4("Comunas que desea graficar"),
-                                width = "100%",
-                                multiple = TRUE,
-                                choices = NULL,
-                                selected = c("La Florida", "Puente Alto", "La Pintana", "Ñuñoa", "Vitacura", "Providencia", "Lo Barnechea"),
-                                options = list( `live-search` = TRUE)
+             ),
+             column(6,     
+                    div(style = estilo_cuadros,   
+                        pickerInput("selector_comunas",
+                                    label = h4("Comunas que desea graficar"),
+                                    width = "100%",
+                                    multiple = TRUE,
+                                    choices = NULL,
+                                    selected = c("La Florida", "Puente Alto", "La Pintana", "Ñuñoa", "Vitacura", "Providencia", "Lo Barnechea"),
+                                    options = list(`live-search` = TRUE,
+                                                   width = FALSE,
+                                                   noneSelectedText = "Sin selección")
+                        ),
+                        
+                        actionButton("azar_comunas", "Elegir comunas al azar")
+                    )
+             )
+           ),
+           hr()
+    )
+  ),
+  fluidRow(
+    column(4,
+           
+           #selectores ----
+           fluidRow(
+             column(12,
+                    # hr(),
+                    h3("Seleccionar variables", style = "margin-top: 0;"),
+                    
+                    #eje x
+                    div(style = estilo_cuadros,
+                        pickerInput("selector_x",
+                                    label = h4("Variable para el eje horizontal"),
+                                    choices = variables, 
+                                    multiple = FALSE, width = "100%", 
+                                    options = list(`live-search` = TRUE,
+                                                   width = FALSE,
+                                                   options = list(noneSelectedText = "Sin selección"))
+                        ),
+                        actionButton("azar_x", "Elegir eje X al azar")
                     ),
                     
-                    actionButton("azar_comunas", "Elegir comunas al azar")
-                )
-         )
-  )
-),
-
-
-#selectores ----
-fluidRow(
-  column(12,
-         hr(),
-         h3("Seleccionar variables"),
-         p("Seleccione variables socioeconómicas de su interés para relacionarlas unas con otras, o bien, elija variables al azar usando los botones para descubrir nuevas relaciones.")
-  )
-),
-fluidRow(
-  column(12,
-         #eje x
-         column(4, 
-                div(style = estilo_cuadros,
-                    pickerInput("selector_x",
-                                label = h4("Variable para el eje horizontal"),
-                                choices = variables, 
-                                multiple = FALSE, width = "100%", options = list(`live-search` = TRUE)
+                    #eje y
+                    div(style = estilo_cuadros,
+                        pickerInput("selector_y",
+                                    label = h4("Variable para el eje vertical"),
+                                    choices = variables, selected = "ytotcorh",
+                                    multiple = FALSE, width = "100%", 
+                                    options = list(`live-search` = TRUE,
+                                                   width = FALSE,
+                                                   options = list(noneSelectedText = "Sin selección"))
+                        ),
+                        actionButton("azar_y", "Elegir eje Y al azar")
                     ),
-                    actionButton("azar_x", "Elegir eje X al azar")
-                )
-         ),
-         #eje y
-         column(4, 
-                div(style = estilo_cuadros,
-                    pickerInput("selector_y",
-                                label = h4("Variable para el eje vertical"),
-                                choices = variables, selected = "ytotcorh",
-                                multiple = FALSE, width = "100%", options = list(`live-search` = TRUE)
+                    #tamaño
+                    div(style = estilo_cuadros,
+                        pickerInput("selector_size",
+                                    label = h4("Variable para el tamaño"),
+                                    choices = variables, selected = "poblacion",
+                                    multiple = FALSE, width = "100%", 
+                                    options = list(`live-search` = TRUE,
+                                                   width = FALSE,
+                                                   options = list(noneSelectedText = "Sin selección"))
+                        ),
+                        actionButton("azar_size", "Elegir tamaño al azar")
                     ),
-                    actionButton("azar_y", "Elegir eje Y al azar")
-                )
-         ),
-         #tamaño
-         column(4, 
-                div(style = estilo_cuadros,
-                    pickerInput("selector_size",
-                                label = h4("Variable para el tamaño"),
-                                choices = variables, selected = "poblacion",
-                                multiple = FALSE, width = "100%", options = list(`live-search` = TRUE)
-                    ),
-                    actionButton("azar_size", "Elegir tamaño al azar")
-                )
-         )
-  )
-),
-
-fluidRow(
-  column(12, align = "center", 
-         style = "margin-top: 14px; margin-bottom: -4px;",
-         actionButton("azar", "Elegir todas las variables al azar", style = "padding-left: 24px; padding-right: 24px;")
-  )
-),
-
-
-
-
-#grafico ----
-fluidRow(
-  column(12,
-         hr(),
-         h3("Visualizar"),
-         
-         # # div(style = "line-height: 1em;",
-         # uiOutput("texto_etiqueta_x")|> div(style = "margin-bottom: -10px;"),
-         # uiOutput("texto_etiqueta_y") |> div(style = "margin-bottom: -10px;"),
-         # uiOutput("texto_etiqueta_size")|> div(style = "margin-bottom: -10px;")
-         # 
+                    p("Seleccione variables socioeconómicas de su interés para relacionarlas unas con otras, o bien, elija variables al azar usando los botones para descubrir nuevas relaciones.")
+             )
+           )
+           
+    ),
+    column(8,
+           #grafico ----
+           fluidRow(
+             column(12,
+                    # hr(),
+                    h3("Visualizar", style = "margin-top: 0;"),
+                    
+                    # # div(style = "line-height: 1em;",
+                    # uiOutput("texto_etiqueta_x")|> div(style = "margin-bottom: -10px;"),
+                    # uiOutput("texto_etiqueta_y") |> div(style = "margin-bottom: -10px;"),
+                    # uiOutput("texto_etiqueta_size")|> div(style = "margin-bottom: -10px;")
+                    # 
+             ),
+             column(12, align = "center", style = "padding: 0px;",
+                    plotOutput("grafico", width = "100%", height = 720) |> 
+                      withSpinner(color = color_destacado, type = 8)
+             )
+           ),
+           fluidRow(
+             column(12, align = "right", 
+                    style = "margin-top: 24px; margin-bottom: -4px;",
+                    actionButton("azar", "Elegir todas las variables al azar", style = "padding-left: 24px; padding-right: 24px;")
+             )
+           )
+    )
   ),
-  column(12, align = "center", style = "padding: 0px;",
-         plotOutput("grafico", width = 760, height = 600) |> 
-           withSpinner(color = color_destacado, type = 8)
+  
+  # firma ----
+  fluidRow(
+    column(12,
+           hr(),
+           p("Diseñado y programado por",
+             tags$a("Bastián Olea Herrera.", target = "_blank", href = "https://bastian.olea.biz")),
+           p(
+             "Código de fuente de esta app y del procesamiento de los datos",
+             tags$a("disponible en GitHub.", target = "_blank", href = "https://github.com/bastianolea/casen_relacionador")
+           ),
+           div(style = "height: 40px")
+           
+    )
   )
-),
-
-# firma ----
-fluidRow(
-  column(12,
-         hr(),
-         p("Diseñado y programado por",
-           tags$a("Bastián Olea Herrera.", target = "_blank", href = "https://bastian.olea.biz")),
-         p(
-           "Código de fuente de esta app y del procesamiento de los datos",
-           tags$a("disponible en GitHub.", target = "_blank", href = "https://github.com/bastianolea/casen_relacionador")
-         ),
-         div(style = "height: 40px")
-         
-  )
-)
-
+  
 )
 
 
@@ -314,7 +341,9 @@ server <- function(input, output, session) {
   updatePickerInput(session,
                     inputId = "selector_regiones",
                     choices = c("Todas las regiones", unique(casen_comunas$region)),
-                    selected = "Región Metropolitana de Santiago"
+                    selected = "Región Metropolitana de Santiago",
+                    options = list(width = FALSE,
+                                   noneSelectedText = "Sin selección")
   )
   
   #pone las comunas en el selector de comunas según la región elegida
@@ -328,27 +357,19 @@ server <- function(input, output, session) {
     return(lista_comunas)
   }) |> bindEvent(input$selector_regiones)
   
-  
+  #aplicar comunas al selector de comunas
   observeEvent(input$selector_regiones, {
     req(length(input$selector_regiones) > 0)
     
     updatePickerInput(session,
                       inputId = "selector_comunas",
-                      options = list( `live-search` = TRUE),
                       selected = c("La Florida", "La Pintana", "Ñuñoa", "Vitacura", "Providencia"),
-                      choices = lista_comunas()
+                      choices = lista_comunas(),
+                      options = list(`live-search` = TRUE,
+                                     width = FALSE,
+                                     noneSelectedText = "Sin selección")
     )
   })
-  
-  observeEvent(input$azar_comunas, {
-    azar_comunas <- sample(unlist(lista_comunas()), 5)
-    updatePickerInput(session,
-                      inputId = "selector_comunas",
-                      options = list( `live-search` = TRUE),
-                      selected = azar_comunas
-    )
-  })
-  
   
   
   # para que al apretar algún botón "al azar" no salgan variables ya elegidas
@@ -360,38 +381,81 @@ server <- function(input, output, session) {
   #todas al azar
   observeEvent(input$azar,{
     updateSelectizeInput(session, inputId = "selector_y",
-                         selected = sample(variables_numericas, 1))
+                         selected = sample(variables_numericas, 1),
+                         options = list(width = FALSE))
     updateSelectizeInput(session, inputId = "selector_x",
-                         selected = sample(variables_numericas, 1))
+                         selected = sample(variables_numericas, 1),
+                         options = list(width = FALSE))
     updateSelectizeInput(session, inputId = "selector_size",
-                         selected = sample(variables_numericas, 1))
+                         selected = sample(variables_numericas, 1),
+                         options = list(width = FALSE))
   })
   
   #azar y
   observeEvent(input$azar_y, {
     updateSelectizeInput(session, inputId = "selector_y",
-                         selected = sample(variables_numericas_sin_en_uso(), 1))
+                         selected = sample(variables_numericas_sin_en_uso(), 1),
+                         options = list(width = FALSE))
   })
   
   #variable x aleatoria al iniciar
   updateSelectizeInput(session, inputId = "selector_x",
-                       selected = sample(variables_numericas, 1))
+                       selected = sample(variables_numericas, 1),
+                       options = list(width = FALSE))
   
   #azar x
   observeEvent(input$azar_x, {
     updateSelectizeInput(session, inputId = "selector_x",
-                         selected = sample(variables_numericas_sin_en_uso(), 1))
+                         selected = sample(variables_numericas_sin_en_uso(), 1),
+                         options = list(width = FALSE))
   })
   
   #azar tamaño
   observeEvent(input$azar_size, {
     updateSelectizeInput(session, inputId = "selector_size",
-                         selected = sample(variables_numericas, 1))
+                         selected = sample(variables_numericas, 1),
+                         options = list(width = FALSE))
   })
   
+  #azar comunas
+  observeEvent(input$azar_comunas, {
+    azar_comunas <- sample(unlist(lista_comunas()), 5)
+    
+    updatePickerInput(session,
+                      inputId = "selector_comunas",
+                      selected = azar_comunas,
+                      options = list(`live-search` = TRUE,
+                                     width = FALSE,
+                                     noneSelectedText = "Sin selección")
+    )
+  })
+  
+  #azar comunas al cambiar región
+  observeEvent(input$selector_regiones, {
+    azar_comunas <- sample(unlist(lista_comunas()), 5)
+    updatePickerInput(session,
+                      inputId = "selector_comunas",
+                      selected = azar_comunas,
+                      options = list(`live-search` = TRUE,
+                                     width = FALSE,
+                                     noneSelectedText = "Sin selección")
+    )
+  })
+  
+  
   # etiquetas ----
-  etiqueta_y <- reactive(nombre_variable(input$selector_y))
-  etiqueta_x  <- reactive(nombre_variable(input$selector_x))
+  etiqueta_y <- reactive({
+    nombre_variable(input$selector_y)
+  })
+  etiqueta_x  <- reactive({
+    nombre <- nombre_variable(input$selector_x)
+    if (str_detect(input$selector_x, "_p$")) {
+      nombre <- paste(nombre, "(porcentaje)")
+    } else if (input$selector_x %in% variables[["Variables de personas"]] |
+               input$selector_x %in% variables[["Variables de hogares"]]) {
+      nombre <- paste(nombre, "(promedio)")
+    } 
+  })
   etiqueta_size <- reactive(nombre_variable(input$selector_size))
   comunas <- reactive({
     req(length(input$selector_comunas) > 0)
@@ -437,29 +501,30 @@ server <- function(input, output, session) {
     # browser()
     # dev.new()
     
-    datos() |> 
-      ggplot(
-        aes(x = .data[[input$selector_x]],
-            y = .data[[input$selector_y]],
-            col = comuna,
-            size = .data[[input$selector_size]])) +
+    grafico <- datos() |> 
+      ggplot(aes(x = .data[[input$selector_x]],
+                 y = .data[[input$selector_y]],
+                 col = comuna,
+                 size = .data[[input$selector_size]])) +
       # geom_smooth(col = color_secundario, linewidth = 2, method = "lm", alpha = 0, show.legend = F) +
       stat_smooth(method = "lm",
                   linewidth = 1.5, col = color_destacado, linetype = "dashed",
                   se = FALSE, fullrange = T, show.legend = F) +
       geom_point(alpha = 0.7) +
       ggrepel::geom_text_repel(aes(label = comuna),
-                               size = 4, 
+                               size = 4.5, alpha = 0.7,
                                point.padding = 25, min.segment.length = 2, show.legend = FALSE) +
       ### escalas ----
-    scale_size(range = c(5, 15),
-               labels = function(x) format(x, big.mark = ".", decimal.mark = ",")) +
+    scale_size_continuous(range = c(6, 16), breaks = scales::extended_breaks(n = 3),
+                          labels = function(x) format(x, big.mark = ".", decimal.mark = ",")) +
       scale_y_continuous(labels = function(x) format(x, big.mark = ".", decimal.mark = ",")) +
       scale_x_continuous(labels = function(x) format(x, big.mark = ".", decimal.mark = ",")) +
+      scale_color_brewer(palette = "Set2") +
       coord_cartesian(clip = "off") +
       ### tema ----
     theme_light(base_size = 18) +
-      theme(legend.position = "right") +
+      theme(legend.position = "bottom",
+            legend.direction = "vertical") +
       theme(axis.line = element_line(linewidth = 2, color = color_detalle, lineend = "round"),
             axis.ticks = element_blank(),
             panel.grid.major = element_line(linewidth = 0.5, color = color_detalle),
@@ -469,21 +534,43 @@ server <- function(input, output, session) {
             axis.text.y = element_text(margin = margin(l = 6)),
             legend.text = element_text(color = color_texto, size = 13, margin = margin(t= 4, b = 4)),
             legend.title = element_text(color = color_destacado, face = "bold", size = 17),
-            axis.title = element_text(color = color_destacado, face = "bold", size = 17)
+            legend.margin = margin(t = 10),
+            axis.title = element_text(color = color_destacado, face = "bold", size = 17),
+            axis.title.x = element_text(margin = margin(t = 8))
       ) +
       #fondo
       theme(panel.background = element_rect(fill = color_fondo, linewidth = 0),
             plot.background = element_rect(fill = color_fondo, linewidth = 0),
             legend.background = element_rect(fill = color_fondo, linewidth = 0),
             legend.key = element_rect(fill = color_fondo)) +
-      guides(size = guide_legend(override.aes = list(color = color_detalle)),
-             col = guide_legend(override.aes = list(size = 6))) +
+      guides(size = guide_legend(override.aes = list(color = color_detalle), 
+                                 direction = "vertical"),
+             col = guide_legend(override.aes = list(size = 6), ncol = 1)) +
       # #etiquetas
       labs(y = etiqueta_y(),
            x = etiqueta_x(),
            col = "Comunas",
            size = etiqueta_size() |> str_wrap(25)
       )
+    
+    #escalas de porcentajes
+    if (str_detect(input$selector_x, "_p$")) {
+      grafico <- grafico +
+        scale_x_continuous(labels = ~scales::percent(.x, accuracy = 1))
+    }
+    if (str_detect(input$selector_y, "_p$")) {
+      grafico <- grafico +
+        scale_y_continuous(labels = ~scales::percent(.x, accuracy = 1))
+    }
+    if (str_detect(input$selector_size, "_p$")) {
+      grafico <- grafico +
+        scale_size_continuous(range = c(5, 17), 
+                              breaks = scales::extended_breaks(n = 3),
+                              labels = ~scales::percent(.x, accuracy = 1))
+    }
+    
+    # browser()
+    return(grafico)
   })
 }
 
