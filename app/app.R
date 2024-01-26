@@ -26,18 +26,21 @@ casen_comunas <- readr::read_csv2("casen_comunas.csv",
                                   col_types = c(rep("c", 3), rep("n", 44))
 ) |> 
   #seleccionar solo columnas que van a usarse
-  select(comuna, cut_comuna, region,
-         any_of(variables |> unlist() |> unname())
+  select(comuna, region,
+         any_of(c("pco1", variables |> unlist() |> unname()))
   )
 
-variables_numericas <- casen_comunas |> select(where(is.numeric)) |> select(-cut_comuna) |> names()
+variables_numericas <- casen_comunas |> select(where(is.numeric)) |> names()
 
 
 # funciones ----
 #se usa para transformar el nombre de la variable (desde los inputs) a la etiqueta
 nombre_variable <- function(texto) {
   # texto = input$selector_y
-  unlist(variables)[unlist(variables) == texto] |> names() |> str_remove(".*\\.")
+  # texto = "ingreso_ytrabajocor_menor_2medianas_p"
+  # unlist(variables)[unlist(variables) == texto] |> names() |> str_remove("^.*\\.")
+  unlist(variables)[unlist(variables) == texto] |> names() |> str_remove("^[^\\.]*\\.")
+  
 }
 
 estilo_cuadros <- glue("margin: -6px; margin-top: 10px; margin-bottom: 14px;
@@ -147,6 +150,10 @@ ui <- fluidPage(
          .selected {
          background-color: ", color_secundario, " !important;
          color: ", color_fondo, " !important;
+         }
+         
+         .bs-placeholder, .bs-placeholder:active, bs-placeholder:focus, .bs-placeholder:hover {
+         color: ", color_fondo, " !important;
          }")),
   
   #botones, botones hover
@@ -166,11 +173,6 @@ ui <- fluidPage(
                     hr {
   border-top: 3px solid ", color_detalle, ";
                     }")),
-  
-  tags$style(paste0("
-  .bs-placeholder, .bs-placeholder:active, bs-placeholder:focus, .bs-placeholder:hover {
-    color: ", color_fondo, " !important;
-  }")),
   
   
   
@@ -286,11 +288,15 @@ ui <- fluidPage(
            
     ),
     column(8,
-           #grafico ----
+           #grafico de dispersión ----
            fluidRow(
              column(12,
                     # hr(),
                     h3("Visualizar", style = "margin-top: 0;"),
+                    
+                    p("Gráfico de dispersión donde la posición de cada comuna (cada círculo) representa su situación en relación a las variables horizontales y verticales. 
+                      La posición alta o baja del círculo indica que en esa comuna existe un mayor o menor valor de la variable horizontal, 
+                      y su ubicación entre izquierda y derecha significa menor o mayor valor de la variable horizontal, respectivamente."),
                     
                     # # div(style = "line-height: 1em;",
                     # uiOutput("texto_etiqueta_x")|> div(style = "margin-bottom: -10px;"),
@@ -305,8 +311,38 @@ ui <- fluidPage(
            ),
            fluidRow(
              column(12, align = "right", 
-                    style = "margin-top: 24px; margin-bottom: -4px;",
+                    style = "margin-top: 24px;",
                     actionButton("azar", "Elegir todas las variables al azar", style = "padding-left: 24px; padding-right: 24px;")
+             )
+           ),
+           
+           #contexto ----
+           fluidRow(
+             column(12, style = "margin-top: 24px !important;", 
+             h3("Contexto de la variable horizontal"),
+             h4(textOutput("titulo_variable_contexto"), style = "margin-top: -8px;"),
+             p("Resultados de la variable sleeccionada, para las comunas seleccionadas, puestas en contexto de los resultados de", strong("todas", style = "text-decoration: underline;"), "las demás comunas del país, para entender cómo se ubican entre las posibles realidades nacionales."),
+             ),
+             column(12, align = "center", style = "padding: 0px;",
+                    
+                    plotOutput("grafico_dispersion_contexto", width = "100%", height = 300) |> 
+                      withSpinner(color = color_destacado, type = 8)
+             )
+           ),
+           
+           
+           #correlación ----
+           fluidRow(
+             column(12, style = "margin-top: 24px !important;", 
+                    h3("Correlación entre variables"),
+                    p("Gráfico que indica numéricamente qué tan correlacionadas están las variables, 
+                      donde una correlación positiva significa que los valores de ambas variables aumentan o descienden juntos (por ejemplo, mientras más camino, más me canso), 
+                      y una correlación negativa significa que las variables se mueven en direcciones opuestas (por ejemplo, tengo menos sed si tomo más agua)."),
+                    ),
+             column(12, align = "center", style = "padding: 0px;",
+                    
+                    plotOutput("grafico_correlacion", height = 400) |> 
+                      withSpinner(color = color_destacado, type = 8)
              )
            )
     )
@@ -457,6 +493,7 @@ server <- function(input, output, session) {
     } 
   })
   etiqueta_size <- reactive(nombre_variable(input$selector_size))
+  
   comunas <- reactive({
     req(length(input$selector_comunas) > 0)
     comunas <- input$selector_comunas |> paste(collapse = ", ")
@@ -474,9 +511,13 @@ server <- function(input, output, session) {
                                            strong(etiqueta_size(), style = paste0("color: ", color_destacado, ";"))
   ))
   
-  # calcular ----
+  # datos ----
   datos <- reactive({
+    
     req(length(input$selector_comunas) > 0)
+    
+    
+    cat(input$selector_comunas)
     
     message("comunas: ", comunas())
     message("variable x: ", input$selector_x)
@@ -484,19 +525,46 @@ server <- function(input, output, session) {
     message("variable size: ", input$selector_size)
     message(">")
     
-    casen_comunas %>%
+    datos <- casen_comunas %>%
       #filtrar comunas
       filter(comuna %in% input$selector_comunas) |> 
       select(comuna, region,
              any_of(c(input$selector_x,
                       input$selector_y,
                       input$selector_size)))
+    datos
+  })
+  
+  
+  datos_dispersion <- reactive({
+    req(length(input$selector_comunas) > 0)
+    # browser()
+    
+    # #filtrar por hogares si la variable lo requiere
+    # if (input$selector_x %in% unname(variables_numericas_hogar)) {
+    #   dato1 <- casen_comunas |> 
+    #     filter(pco1 == "1. Jefatura de Hogar")
+    # } else {
+    #   dato1 <- casen_comunas
+    # }
+    
+    dato2 <- casen_comunas |> 
+      #crear variable con los datos elegidos
+      mutate(variable = !!sym(input$selector_x)) |> 
+      select(comuna, variable)
+    
+    dato3 <- dato2 |> 
+      # filter(comuna %in% .comunas) |> 
+      mutate(comuna_seleccionada = ifelse(comuna %in% input$selector_comunas, TRUE, FALSE)) |>
+      # mutate(variable = !!sym(.variable)) |>
+      group_by(comuna, comuna_seleccionada) |> 
+      summarize(variable = mean(variable, na.rm = TRUE), .groups = "drop")
+    return(dato3)
   })
   
   
   
-  
-  #gráfico ----
+  #gráfico dispersión ----
   output$grafico <- renderPlot({
     # browser()
     # dev.new()
@@ -572,6 +640,124 @@ server <- function(input, output, session) {
     # browser()
     return(grafico)
   })
+  
+  
+  
+  #gráfico dispersión contexto ----
+  
+  output$titulo_variable_contexto <- renderText(nombre_variable(input$selector_x))
+  
+  output$grafico_dispersion_contexto <- renderPlot({
+    req(datos_dispersion())
+    # browser()
+    # datos_dispersion() |> count(comuna_seleccionada)
+    
+    grafico <- datos_dispersion() |> 
+      ggplot(aes(x = variable, y = 1,
+                 # fill = comuna_seleccionada, color = comuna_seleccionada, 
+                 size = comuna_seleccionada, alpha = comuna_seleccionada)) +
+      geom_jitter(data = datos_dispersion() |> filter(!comuna_seleccionada), 
+                  color = color_secundario, width = 0, height = 1) +
+      #línea vertical de promedio
+      # geom_vline(xintercept = mean(datos_dispersion()$variable), 
+      #            linewidth = 1.2, linetype = "solid", 
+      #            color = color_fondo) +
+      #sombra de puntos de comuna
+      geom_point(data = datos_dispersion() |> filter(comuna_seleccionada), 
+                 aes(color = comuna),
+                 size = 11, color = color_fondo, alpha = 0.6) +
+      #puntos de comuna
+      geom_point(data = datos_dispersion() |> filter(comuna_seleccionada), 
+                 aes(color = comuna), alpha = 0.7) +
+      #tamaño de puntos destacados
+      scale_size_manual(values = c(5, 12), guide = "none") +
+      #transparencia de puntos destacados
+      scale_alpha_manual(values = c("TRUE" = 0.7, "FALSE" = 0.2), guide = "none") +
+      scale_y_continuous(limits = c(0, 2)) +
+      scale_color_brewer(palette = "Set2") +
+      # scale_x_continuous(label = ~scales::percent(.x),
+      #                    expand = expansion(0.08)) +
+      scale_x_continuous(labels = ~format(.x, big.mark = ".", decimal.mark = ",")) +
+      #fondo
+      theme(panel.background = element_rect(fill = color_fondo, linewidth = 0),
+            plot.background = element_rect(fill = color_fondo, linewidth = 0),
+            legend.background = element_rect(fill = color_fondo, linewidth = 0),
+            legend.key = element_rect(fill = color_fondo)) +
+      #otros
+      theme(#axis.line.x = element_line(linewidth = 2, color = color_detalle, lineend = "round"),
+        axis.ticks = element_blank(),
+        panel.grid.major.x = element_line(linewidth = 0.5, color = color_detalle),
+        panel.grid.major.y = element_blank(),
+        panel.grid.minor = element_blank(),
+        panel.border = element_blank(),
+        axis.text = element_text(color = color_texto, size = 13),
+        axis.text.y = element_blank(),
+        axis.text.x = element_text(margin = margin(t = 5)),
+        legend.text = element_text(color = color_texto, size = 13, margin = margin(t= 4, b = 4, r = 14)),
+        # legend.background = element_blank(),
+        legend.title = element_blank(),
+        axis.title = element_blank()
+      ) +
+      theme(legend.position = "none")
+    
+    #escalas de porcentajes
+    if (str_detect(input$selector_x, "_p$")) {
+      grafico <- grafico +
+        scale_x_continuous(labels = ~scales::percent(.x, accuracy = 1))
+    }
+    plot(grafico)
+  })
+  
+  
+  #gráfico correlación ----
+  output$grafico_correlacion <- renderPlot({
+    req(datos())
+    # browser()
+    # dev.new()
+    
+    datos_correlacion <- datos() |>
+      select(where(is.numeric)) |>
+      cor() |> 
+      as.data.frame() |>
+      tibble::rownames_to_column(var = "fila") |> 
+      tidyr::pivot_longer(cols = where(is.numeric), names_to = "columna", values_to = "correlacion") |> 
+      mutate(diagonal = ifelse(fila == columna, TRUE, FALSE))
+    
+    datos_correlacion_2 <- datos_correlacion |> 
+      rowwise() |> 
+      mutate(fila = nombre_variable(fila),
+             columna = nombre_variable(columna)) |> 
+      mutate(fila = str_wrap(fila, 15),
+             columna = str_wrap(columna, 15))
+    
+    datos_correlacion_2 |> 
+      ggplot(aes(x = columna, y = fila, fill = correlacion, alpha = diagonal)) +
+      geom_tile(linewidth = 1, color = color_fondo) +
+      geom_text(aes(label = scales::percent(correlacion, accuracy = 1.1) |> 
+                      str_remove("\\.0") |> 
+                      str_replace("100\\.1%", "100%")), 
+                color = color_texto, size = 3, fontface = "bold") +
+      scale_fill_gradient2(low = color_destacado, mid = color_fondo, high = color_destacado, 
+                           limits = c(-1, 1), labels = ~scales::percent(.x)) +
+      scale_alpha_manual(values = c("TRUE" = 0, "FALSE" = 1)) +
+      theme(legend.key.height = unit(1.5, "cm"), legend.key.width = unit(3, "mm")) +
+      coord_fixed(ratio = 1/1, expand = FALSE) +
+      theme(text = element_text(color = color_texto),
+            axis.text = element_text(color = color_texto),
+            axis.ticks = element_blank(),
+            panel.grid = element_blank(),
+            axis.text.y = element_text(angle = 90, hjust = .5),
+            axis.title = element_blank(), legend.title = element_blank()) +
+      #fondo
+      theme(panel.background = element_rect(fill = color_fondo, linewidth = 0),
+            plot.background = element_rect(fill = color_fondo, linewidth = 0),
+            legend.background = element_rect(fill = color_fondo, linewidth = 0),
+            legend.key = element_rect(fill = color_fondo)) +
+      guides(alpha = "none") +
+      guides(fill = guide_colourbar(ticks = FALSE))
+    
+    # browser()
+  }, res = 100, bg = color_fondo)
 }
 
 
