@@ -342,7 +342,7 @@ ui <- fluidPage(
                     ),
              column(12, align = "center", style = "padding: 0px;",
                     
-                    plotOutput("grafico_correlacion", height = 400) |> 
+                    plotOutput("grafico_correlacion", height = 460) |> 
                       withSpinner(color = color_destacado, type = 8)
              )
            )
