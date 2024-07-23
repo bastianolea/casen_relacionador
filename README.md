@@ -12,6 +12,14 @@ Tanto la aplicación como el procesamiento de los datos, incluida la descarga de
 
 ![Relacionador Casen](www/relacionador_casen_2022.jpg "Relacionador Casen")
 
+
+### Información técnica
+Para producir los datos, hay que ejecutar los scripts en el siguiente orden:
+
+1. `casen2022_importar.r`: descarga la base de datos original de la encuesta Casen desde su fuente 
+2. `casen2022_preprocesar.r`: carga la base de datos descargada en el paso anterior y la deja guardada en un formato más eficiente
+3. `casen2022_calcular.r`: determina las variables a utilizar en el visualizador, y luego calcula conteos, promedios, medianas y porcentajes, según corresponda para cada variable. Las variables de ingresos son representadas por la mediana comunal, las demás variables numéricas son promedios, y las que no son numéricas (por ejemplo, nacionalidad, pobreza, etc.) son calculadas como conteo de la población comunal, y luego transformado en promedio de la población comunal.
+
 ----
 
 Diseñado y programado en R por Bastián Olea Herrera. Magíster en Sociología, data scientist.

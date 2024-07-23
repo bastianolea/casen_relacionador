@@ -185,6 +185,7 @@ ui <- fluidPage(
            ),
            p("Este visualizador permite analizar la relación entre múltiples datos socioeconómicos de un conjunto personalizable de comunas del país, en base a los datos de la",
              tags$a("Encuesta de caracterización socioeconómica nacional (Casen) 2022", target = "_blank", href = "https://observatorio.ministeriodesarrollosocial.gob.cl/encuesta-casen-2022")),
+           
            p("El gráfico generado, ubicado en la parte inferior, visualiza el posicionamiento de las comunas elegidas entre dos ejes numéricos (horizontal y vertical), que pueden representar ingresos, condiciones de vida, o situaciones de vulnerabilidad,
              expresando así la relación entre las desigualdades y condiciones de vida del país."),
            
@@ -354,8 +355,13 @@ ui <- fluidPage(
            hr(),
            p("Diseñado y programado por",
              tags$a("Bastián Olea Herrera.", target = "_blank", href = "https://bastian.olea.biz")),
-           p(
-             "Código de fuente de esta app y del procesamiento de los datos",
+           
+           p("Puedes explorar mis otras",
+             tags$a("aplicaciones interactivas sobre datos sociales aquí.",
+                    href = "https://bastianolea.github.io/shiny_apps/", target = "_blank")
+           ),
+           
+           p("Código de fuente de esta app y del procesamiento de los datos",
              tags$a("disponible en GitHub.", target = "_blank", href = "https://github.com/bastianolea/casen_relacionador")
            ),
            div(style = "height: 40px")

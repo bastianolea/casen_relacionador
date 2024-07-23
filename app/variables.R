@@ -10,6 +10,8 @@ variables <- list(
     "Viviendas arrendadas" = "vivienda_arrendada_p",
     "Metros cuadrados aproximados de la vivienda" = "v12mt", #ojo con esta que es numérica
     "Viviendas pequeñas (30m cuadrados o menos)" = "vivienda_pequeña_p",
+    "Viviendas medianas (entre 30 y 100m cuadrados)" = "vivienda_mediana_p",
+    "Viviendas grandes (más de 100m cuadrados)" = "vivienda_grande_p",
     "Hogares en sectores en mal estado" = "sector_malo_p",
     "Hogares en sectores con mucho daño deliberado a la propiedad" = "sector_dañado_p",
     "Hogares en zonas rurales" = "rural_p",

@@ -12,7 +12,7 @@ casen2022_2 <- arrow::read_parquet("datos/casen2022.parquet")
 #ejecutar script con listas de variables relevantes
 source("app/variables.R")
 
-
+# lista de variables de la casen a considerar
 variables_casen <- c(
   "comuna",
   "cut_comuna",
@@ -74,26 +74,32 @@ variables_casen <- c(
   "rama4"
 )
 
-variables_numericas_personas <- c(
-  "esc",                     #años de escolaridad
-  "edad",                    #edad
+variables_ingresos_personas <- c(
   "ytotcor",                 #Ingreso total corregido
   "yoprcor",                 #Ingreso ocupación principal
   "ytrabajocor",             #ingreso del trabajo
   "y2803",                   #Jubilación o pensión de vejez
   "y0101",                   #Asalariados principal - Sueldos y salarios monetario
-  "ytot",                    #Ingreso total
+  "ytot"                    #Ingreso total
+)
+
+variables_numericas_personas <- c(
+  "esc",                     #años de escolaridad
+  "edad",                    #edad
   "dau",                     #Decil autónomo nacional
   "qaut",                    #Quintil autónomo nacional
   "dautr",                   #Decil autónomo regional
   "qautr"                    #Quintil autónomo regional
 )
 
-variables_numericas_hogar <- c(
+variables_ingresos_hogar <- c(
   "ytotcorh",                #Ingreso total del hogar corregido
   "ytrabajocorh",            #ingreso del trabajo del hogar
   "ypchautcor",              #Ingreso autónomo per cápita
-  "ypc",                     #Ingreso total per cápita del hogar corregido
+  "ypc"                     #Ingreso total per cápita del hogar corregido
+)
+
+variables_numericas_hogar <- c(
   "numper",                  #numero de personas en el hogar
   "v12mt",                   #metros cuadrados
   "p9"                       #p9. Incluyéndose a Ud., ¿cuántas personas viven habitualmente en la vivienda?
@@ -103,7 +109,9 @@ variables_numericas_hogar <- c(
 casen2022_comunas <- casen2022_2 |> 
   # select(comuna, region, expc,
   #        any_of(variables |> unlist() |> unname())) |> 
-  select(any_of(c(variables_casen, variables_numericas_personas, variables_numericas_hogar))) |> 
+  select(any_of(c(variables_casen, 
+                  variables_ingresos_personas, variables_ingresos_hogar,
+                  variables_numericas_personas, variables_numericas_hogar))) |> 
   tidyr::uncount(weights = expc) |> #factor de expansión
   mutate(nivel = "comuna")
 
@@ -112,9 +120,17 @@ casen2022_comunas <- casen2022_2 |>
 casen2022_comunas_2 <- casen2022_comunas |> 
   mutate(dautr = as.integer(dautr)) |> 
   mutate(qautr = as.integer(qautr)) |> 
+  mutate(dau = as.integer(dau)) |> 
+  mutate(qaut = as.integer(qaut)) |> 
   mutate(v12mt = readr::parse_integer(as.character(v12mt)))
 
 # probar variables ----
+# casen2022_comunas |> count(v12mt) |> print(n=Inf)
+# casen2022_comunas |> 
+#   filter(region == "Región Metropolitana de Santiago") |>
+#   filter(comuna == "Providencia") |> 
+#   select(comuna, area, v12mt) |> 
+#   count(v12mt)
 # casen2022_comunas_2 |> count(v12mt)
 # casen2022_comunas_2 |> count(area)
 
@@ -124,19 +140,27 @@ casen2022_comunas_2 <- casen2022_comunas |>
 ## numéricas de personas ----
 casen2022_numericos_personas <- casen2022_comunas_2 |> 
   group_by(comuna, cut_comuna, region) |> 
-  # summarize(across(where(is.numeric), ~mean(.x, na.rm = TRUE)), 
-  summarize(across(any_of(variables_numericas_personas |> unname()),
-                   ~mean(.x, na.rm = TRUE)), 
-            .groups = "drop")
+  summarize(
+    # promedio
+    across(any_of(variables_numericas_personas),
+           ~mean(.x, na.rm = TRUE)),
+    # mediana
+    across(any_of(variables_ingresos_personas),
+           ~median(.x, na.rm = TRUE)), 
+    .groups = "drop")
 
 ## numéricas de hogar ----
 casen2022_numericos_hogar <- casen2022_comunas_2 |> 
   filter(pco1 == "1. Jefatura de Hogar") |> 
   group_by(comuna, cut_comuna, region) |> 
-  # summarize(across(where(is.numeric), ~mean(.x, na.rm = TRUE)),
-  summarize(across(any_of(variables_numericas_hogar |> unname()),
-                   ~mean(.x, na.rm = TRUE)), 
-            .groups = "drop")
+  summarize(
+    # promedio
+    across(any_of(variables_numericas_hogar),
+           ~mean(.x, na.rm = TRUE)), 
+    # mediana
+    across(any_of(variables_ingresos_hogar),
+           ~median(.x, na.rm = TRUE)), 
+    .groups = "drop")
 
 
 # calcular conteo ----
@@ -203,6 +227,8 @@ casen2022_comunas_hogares <- casen2022_comunas_2 %>%
             vivienda_propia = sum(v13 == "1. Propia", na.rm=TRUE),
             vivienda_arrendada = sum(v13 == "2. Arrendada", na.rm=TRUE),
             vivienda_pequeña = sum(v12 == "1. Menos de 30 m2", na.rm=TRUE),
+            vivienda_mediana = sum(v12 %in% c("2. De 30 a 40 m2", "3. De 41 a 60 m2", "4. De 61 a 100 m2"), na.rm = TRUE),
+            vivienda_grande = sum(v12 == "5. De 101 a 150 m2" | v12 == "6. Más de 150 m2", na.rm=TRUE),
             sector_malo = sum(p2 == "4. Malo" | p2 == "5. Muy malo", na.rm = T),
             sector_dañado = sum(p4 == "1. Mucho (observa 5 o más áreas con grafitis o daño deliberado)" | p4 == "2. Más o menos (observa 3 o 4 áreas con grafitis o daño deliberado)", na.rm=T),
             ingreso_percapita_hogar_menor_mediana = sum(ypc <= 450000, na.rm = T),
@@ -247,6 +273,8 @@ casen2022_comunas_6 <- casen2022_comunas_5 |>
   select(comuna, region, poblacion, hogares,
          any_of(variables_numericas_hogar),
          any_of(variables_numericas_personas),
+         any_of(variables_ingresos_hogar),
+         any_of(variables_ingresos_personas),
          ends_with("_p")
   )
 
@@ -286,5 +314,13 @@ walk(unlist(variables), ~{
 
 # nombre_variable("hacinamiento")
 
+# volver a ponerle cut_comunas
+casen2022_comunas_7 <- casen2022_comunas_6 |> 
+  left_join(casen2022_2 |> 
+              select(comuna, cut_comuna) |> 
+              distinct(),
+            by = "comuna") |> 
+  relocate(cut_comuna, .after = comuna)
+
 # #guardar datos preparados para su uso en la app
-readr::write_csv2(casen2022_comunas_6, "app/casen_comunas.csv")
+readr::write_csv2(casen2022_comunas_7, "app/casen_comunas.csv")
