@@ -315,37 +315,39 @@ ui <- fluidPage(
                     style = "margin-top: 24px;",
                     actionButton("azar", "Elegir todas las variables al azar", style = "padding-left: 24px; padding-right: 24px;")
              )
-           ),
+           )
+    )
+  ),
+  
+  
+  
+  #contexto ----
+  fluidRow(
+    column(12, style = "margin-top: 24px !important;", 
+           h3("Contexto de la variable horizontal"),
+           h4(textOutput("titulo_variable_contexto"), style = "margin-top: -8px;"),
+           p("Resultados de la variable sleeccionada, para las comunas seleccionadas, puestas en contexto de los resultados de", strong("todas", style = "text-decoration: underline;"), "las demás comunas del país, para entender cómo se ubican entre las posibles realidades nacionales."),
+    ),
+    column(12, align = "center", style = "padding: 0px;",
            
-           #contexto ----
-           fluidRow(
-             column(12, style = "margin-top: 24px !important;", 
-             h3("Contexto de la variable horizontal"),
-             h4(textOutput("titulo_variable_contexto"), style = "margin-top: -8px;"),
-             p("Resultados de la variable sleeccionada, para las comunas seleccionadas, puestas en contexto de los resultados de", strong("todas", style = "text-decoration: underline;"), "las demás comunas del país, para entender cómo se ubican entre las posibles realidades nacionales."),
-             ),
-             column(12, align = "center", style = "padding: 0px;",
-                    
-                    plotOutput("grafico_dispersion_contexto", width = "100%", height = 300) |> 
-                      withSpinner(color = color_destacado, type = 8)
-             )
-           ),
-           
-           
-           #correlación ----
-           fluidRow(
-             column(12, style = "margin-top: 24px !important;", 
-                    h3("Correlación entre variables"),
-                    p("Gráfico que indica numéricamente qué tan correlacionadas están las variables, 
+           plotOutput("grafico_dispersion_contexto", width = "100%", height = 300) |> 
+             withSpinner(color = color_destacado, type = 8)
+    )
+  ),
+  
+  
+  #correlación ----
+  fluidRow(
+    column(12, style = "margin-top: 24px !important;", 
+           h3("Correlación entre variables"),
+           p("Gráfico que indica numéricamente qué tan correlacionadas están las variables, 
                       donde una correlación positiva significa que los valores de ambas variables aumentan o descienden juntos (por ejemplo, mientras más camino, más me canso), 
                       y una correlación negativa significa que las variables se mueven en direcciones opuestas (por ejemplo, tengo menos sed si tomo más agua)."),
-                    ),
-             column(12, align = "center", style = "padding: 0px;",
-                    
-                    plotOutput("grafico_correlacion", height = 460) |> 
-                      withSpinner(color = color_destacado, type = 8)
-             )
-           )
+    ),
+    column(12, align = "center", style = "padding: 0px;",
+           
+           plotOutput("grafico_correlacion", height = 460) |> 
+             withSpinner(color = color_destacado, type = 8)
     )
   ),
   
